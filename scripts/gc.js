@@ -116,23 +116,23 @@ async function searchConference() {
 
         });
 
-        const sortedDecades =
-            Object.entries(decadeCounts)
-                .sort((a, b) => Number(a[0]) - Number(b[0]));
+            const sortedDecades =
+                Object.entries(decadeCounts)
+                    .sort((a, b) => Number(a[0]) - Number(b[0]));
 
-        console.table(sortedDecades);
+            console.table(sortedDecades);
 
-        yearResults.innerHTML = `
-            <h3>Decade Analytics</h3>
-        `;
+            // yearResults.innerHTML = `
+            //     <h3>Decade Analytics</h3>
+            // `;
 
-        sortedDecades.forEach(([decade, count]) => {
+            sortedDecades.forEach(([decade, count]) => {
 
-            yearResults.innerHTML += `
-                <p>${decade}s: ${count}</p>
-            `;
+                yearResults.innerHTML += `
+                    <p>${decade}s: ${count}</p>
+                `;
 
-        });
+            });
 
     } catch (error) {
 
