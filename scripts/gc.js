@@ -379,15 +379,12 @@ async function searchScriptures() {
         const sortedBooks =
             Object.entries(bookCounts)
                 .sort(
-                    (a, b) =>
-                        b[1] - a[1]
+                    (a, b) => b[1] - a[1]
                 );
 
         scriptureAnalytics.innerHTML +=
             `
-            <h3>
-                Top Books
-            </h3>
+            <h3>Top Books</h3>
         `;
 
         sortedBooks.forEach(
@@ -395,9 +392,7 @@ async function searchScriptures() {
 
                 scriptureAnalytics.innerHTML +=
                     `
-                    <p>
-                        ${book}: ${count}
-                    </p>
+                    <p>${book}: ${count}</p>
                 `;
             }
         );
@@ -418,9 +413,7 @@ async function searchScriptures() {
 
             scriptureAnalytics.innerHTML +=
                 `
-                <h3>
-                    Related Terms
-                </h3>
+                <h3>Related Terms</h3>
             `;
 
             firstData.wordFrequency.forEach(
@@ -428,9 +421,7 @@ async function searchScriptures() {
 
                     scriptureAnalytics.innerHTML +=
                         `
-                        <p>
-                            ${item.word}: ${item.count}
-                        </p>
+                        <p>${item.word}: ${item.count}</p>
                     `;
                 }
             );
