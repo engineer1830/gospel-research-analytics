@@ -1,0 +1,38 @@
+body
+{
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+h1
+{
+    margin-bottom: 1rem;
+}
+
+.search-container
+{
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+input
+{
+    flex: 1;
+    padding: 0.5rem;
+}
+
+button
+{
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+pre
+{
+    background-color: #f4f4f4;
+    padding: 1rem;
+    overflow-x: auto;
+    border-radius: 4px; }

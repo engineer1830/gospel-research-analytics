@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospel Research Analytics</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <script src="./scripts/gc.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Gospel Research Analytics</h1>
+        <p>Proof of concept combining General Conference,
+            Scripture Lookup, and Scripture Search APIs.</p>
+    </header>
+    <main>
+        <!-- ========================================= -->
+        <!-- GENERAL CONFERENCE SEARCH -->
+        <!-- ========================================= -->
+        <section id="conference-search">
+            <h2>General Conference Search</h2>
+            <p>Search General Conference talks and generate
+                speaker and decade analytics. </p>
+
+            <div class="search-container">
+                <input id="searchInput" type="text" placeholder="Enter a topic...">
+                <button id="searchBtn">Search Conference</button>
+            </div>
+
+            <section id="decadeAnalytics">
+                <h3>Decade Analytics</h3>
+                <div id="yearResults"></div>
+            </section>
+            <section id="speakerAnalytics">
+                <h3>Speaker Analytics</h3>
+                <div id="speakerResults"></div>
+            </section>
+            <section>
+                <h3>Conference Results</h3>
+                <pre id="conferenceResults"></pre>
+            </section>
+        </section>
+
+        <hr>
+
+        <!-- ========================================= -->
+        <!-- SCRIPTURE VERSE LOOKUP -->
+        <!-- ========================================= -->
+
+        <section id="scripture-lookup">
+            <h2>Scripture Verse Lookup</h2>
+            <p>Enter a scripture reference such as
+                Alma 32:21, John 3:16, or Mosiah 2:17. </p>
+            <div class="search-container">
+                <input id="lookupScripture" type="text" placeholder="Alma 32:21">
+                <button id="lookupBtn">Lookup Verse</button>
+            </div>
+
+            <section>
+                <h3>Verse Result</h3>
+                <pre id="verseResults"></pre>
+            </section>
+        </section>
+
+        <hr>
+
+        <!-- ========================================= -->
+        <!-- SCRIPTURE KEYWORD SEARCH -->
+        <!-- ========================================= -->
+
+        <section id="scripture-search">
+            <h2>Scripture Keyword Search</h2>
+            <p>Search scripture text by keyword or phrase and
+                analyze the returned results.</p>
+            <div class="search-container">
+                <input id="searchScripture" type="text" placeholder="faith">
+                <button id="searchScriptureBtn">Search Scriptures</button>
+            </div>
+            <section>
+                <h3>Scripture Analytics</h3>
+                <div id="scriptureAnalytics"></div>
+            </section>
+
+            <section>
+                <h3>Scripture Results</h3>
+                <pre id="scriptureResults"></pre>
+            </section>
+        </section>
+    </main>
+
+</body>
+
+</html>
+
