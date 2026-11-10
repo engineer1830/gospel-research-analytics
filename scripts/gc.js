@@ -45,7 +45,7 @@ async function searchConference() {
 
         // Get remaining pages 
         // (for operations, it should be offset < total, but for proof of concept I have set total = 500 for faster pulls)
-        for (let offset = limit; offset < total; offset += limit) {
+        for (let offset = limit; offset < 500; offset += limit) {
 
             const response = await fetch(
                 `https://openscriptureapi.org/api/conference/v1/lds/en/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}&offset=${offset}`
@@ -116,23 +116,23 @@ async function searchConference() {
 
         });
 
-            const sortedDecades =
-                Object.entries(decadeCounts)
-                    .sort((a, b) => Number(a[0]) - Number(b[0]));
+        const sortedDecades =
+            Object.entries(decadeCounts)
+                .sort((a, b) => Number(a[0]) - Number(b[0]));
 
-            console.table(sortedDecades);
+        console.table(sortedDecades);
 
-            // yearResults.innerHTML = `
-            //     <h3>Decade Analytics</h3>
-            // `;
+        // yearResults.innerHTML = `
+        //     <h3>Decade Analytics</h3>
+        // `;
 
-            sortedDecades.forEach(([decade, count]) => {
+        sortedDecades.forEach(([decade, count]) => {
 
-                yearResults.innerHTML += `
+            yearResults.innerHTML += `
                     <p>${decade}s: ${count}</p>
                 `;
 
-            });
+        });
 
     } catch (error) {
 
