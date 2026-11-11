@@ -1,5 +1,5 @@
-import {searchConference} from "./conference-api.mjs";
-import {searchScriptures, lookupVerse} from "./scripture-api.mjs";
+import {searchConference} from "./conferenceapi.mjs";
+import {searchScriptures, lookupVerse} from "./scriptureapi.mjs";
 
 const searchBtn = document.querySelector("#searchBtn");
 const lookupBtn = document.querySelector("#lookupBtn");
