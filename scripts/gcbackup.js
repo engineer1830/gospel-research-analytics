@@ -1,3 +1,5 @@
+import {normalizeScriptureBook} from "./normalization.mjs";
+
 const searchBtn = document.querySelector("#searchBtn");
 const searchInput = document.querySelector("#searchInput");
 
@@ -14,6 +16,7 @@ const searchScripture = document.querySelector("#searchScripture");
 const scriptureResults = document.querySelector("#scriptureResults");
 
 const scriptureAnalytics = document.querySelector("#scriptureAnalytics");
+const book = normalizeScriptureBook(result.book);
 
 searchBtn.addEventListener("click", searchConference);
 lookupBtn.addEventListener("click", lookupVerse);
