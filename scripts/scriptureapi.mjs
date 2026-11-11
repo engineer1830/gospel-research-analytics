@@ -1,4 +1,4 @@
-import {normalizeScriptureBook, parseReference} from "./normalization.mjs";
+import {normalizeScriptureBook, classifyVolume, parseReference} from "./normalization.mjs";
 
 const lookupScripture = document.querySelector("#lookupScripture");
 const verseResults = document.querySelector("#verseResults");
@@ -73,6 +73,8 @@ export async function lookupVerse() {
 
 export async function searchScriptures() {
 
+  const volumeCounts = {};
+  
   const searchTerm =
     searchScripture.value.trim();
 
@@ -159,8 +161,45 @@ export async function searchScriptures() {
 
         const book = normalizeScriptureBook(result.book);
 
+        const volume = classifyVolume(book);
+
+        if (volume === "Unknown") {
+
+          console.log(
+            "Unknown Book:",
+            result.book,
+            "→",
+            book
+          );
+
+        }
+
         bookCounts[book] =
           (bookCounts[book] || 0) + 1;
+        
+        volumeCounts[volume] =
+          (volumeCounts[volume] || 0) + 1;
+      }
+    );
+
+    const sortedVolumes =
+      Object.entries(volumeCounts)
+        .sort((a, b) => b[1] - a[1]);
+
+    scriptureAnalytics.innerHTML +=
+      `
+  <h3>Volume Analytics</h3>
+`;
+
+    sortedVolumes.forEach(
+      ([volume, count]) => {
+
+        scriptureAnalytics.innerHTML +=
+          `
+          <p>
+              ${volume}: ${count}
+          </p>
+      `;
       }
     );
 
