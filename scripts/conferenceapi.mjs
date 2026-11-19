@@ -1,15 +1,19 @@
 const searchInput = document.querySelector("#searchInput");
 
-const results = document.querySelector("#conferenceResults");
-const speakerResults = document.querySelector("#speakerResults");
-const yearResults = document.querySelector("#yearResults");
-
+const conferenceResults = document.querySelector("#conferenceResults");
+const speakerAnalytics = document.querySelector("#speakerResults");
+const decadeAnalytics = document.querySelector("#yearResults");
+  
 export async function searchConference() {
   const searchTerm = searchInput.value.trim();
 
   if (!searchTerm) {
     return;
     }
+
+  speakerAnalytics.innerHTML = "";
+  conferenceResults.innerHTML = "";
+  decadeAnalytics.innerHTML = "";
 
   try {
 
@@ -45,8 +49,40 @@ export async function searchConference() {
     console.log("Final Result Count:", allResults.length); // This line to be removed when functional
 
     // Display sample JSON - to be removed when operational . . . or determine what is displayed
-    results.textContent =
-      JSON.stringify(allResults.slice(0, 10), null, 2);
+    
+    allResults
+      .slice(0, 25)
+      .forEach(result => {
+
+        const conferenceDate =
+          result.month === 4
+            ? `April ${result.year}`
+            : result.month === 10
+              ? `October ${result.year}`
+              : `${result.month}/${result.year}`;
+
+        const excerpt =
+          result.text.length > 250
+            ? result.text.substring(0, 250) + "..."
+            : result.text;
+
+        conferenceResults.innerHTML += `
+        <div class="conference-card">
+  
+          <h4>${result.title}</h4>
+  
+          <p class="conference-meta">
+            ${result.speaker} •
+            ${result.session} •
+            ${conferenceDate}
+          </p>
+  
+          <p>${excerpt}</p>
+  
+        </div>
+      `;
+
+      });
 
     // ==========================================
     // Speaker Analytics
@@ -67,20 +103,14 @@ export async function searchConference() {
       Object.entries(speakerCounts)
         .sort((a, b) => b[1] - a[1]);
 
-    speakerResults.innerHTML = `
-          <h3>
-              Total Matches: ${total}<br>
-              Records Analyzed: ${allResults.length}
-          </h3>
-      `;
+    sortedSpeakers
+      .slice(0, 5)
+      .forEach(([speaker, count]) => {
 
-    sortedSpeakers.forEach(([speaker, count]) => {
-
-      speakerResults.innerHTML += `
-              <p>${speaker}: ${count}</p>
-          `;
-
-    });
+        speakerAnalytics.innerHTML += `
+            <p class="analytics-item"><span class="label">${speaker}</span><span class="count">${count}</span></p>`;
+      });
+    
 
     // ==========================================
     // Decade Analytics
@@ -100,29 +130,22 @@ export async function searchConference() {
 
     const sortedDecades =
       Object.entries(decadeCounts)
-      .sort((a, b) => Number(a[0]) - Number(b[0]));
+      .sort((a, b) => Number(b[0]) - Number(a[0]));
 
     console.table(sortedDecades);
 
-    // yearResults.innerHTML = `
-    //     <h3>Decade Analytics</h3>
-    // `;
+    sortedDecades
+      .slice(0, 5)
+      .forEach(([decade, count]) => {
 
-    yearResults.innerHTML = "";
-
-    sortedDecades.forEach(([decade, count]) => {
-
-      yearResults.innerHTML += `
-                  <p>${decade}s: ${count}</p>
-              `;
-
-    });
+        decadeAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${decade}s</span><span class="count">${count}</span></p>`;
+      });
 
   } catch (error) {
 
     console.error(error);
 
-    results.textContent =
+    conferenceResults.textContent =
       `Error: ${error.message}`;
   }
 }

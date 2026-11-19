@@ -38,6 +38,38 @@ pre
     border-radius: 4px; 
 }
 
+.conference-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.conference-card:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .12);
+}
+
+.conference-card h4 {
+    margin-top: 0;
+    margin-bottom: .5rem;
+    color: #003366;
+}
+
+.conference-card p {    
+    margin: 0;
+    line-height: 1.5;
+}
+
+.conference-meta {
+    margin-top: .25rem;
+    margin-bottom: .75rem;
+    color: #666;
+    font-size: .9rem;
+    font-style: italic;
+}
+
 .scripture-card {
     background: white;
     border: 1px solid #ddd;
@@ -93,4 +125,13 @@ pre
 
 .analytics-item .count {
     font-weight: 700;
+}
+
+.conference-analytics-grid
+{
+    display: grid;
+    grid-template-columns:
+        repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
