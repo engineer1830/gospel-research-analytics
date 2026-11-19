@@ -70,7 +70,7 @@
         <!-- SCRIPTURE KEYWORD SEARCH -->
         <!-- ========================================= -->
 
-        <section id="scripture-search">
+        <!-- <section id="scripture-search">
             <h2>Scripture Keyword Search</h2>
             <p>Search scripture text by keyword or phrase and
                 analyze the returned results.</p>
@@ -87,7 +87,57 @@
                 <h3>Scripture Results</h3>
                 <pre id="scriptureResults"></pre>
             </section>
-        </section>
+        </section> -->
+    
+        <section id="scripture-search">
+        
+            <h2>Scripture Keyword Search</h2>
+        
+            <p>
+                Search scripture text by keyword or phrase and
+                analyze the returned results.
+            </p>
+        
+            <div class="search-container">
+                <input id="searchScripture" type="text" placeholder="faith">
+        
+                <button id="searchScriptureBtn">
+                    Search Scriptures
+                </button>
+            </div>
+        
+            <h3>Scripture Analytics</h3>
+        
+            <div class="analytics-grid">
+        
+                <div class="analytics-card">
+                    <h4>Volume Analytics</h4>
+                    <div id="volumeAnalytics"></div>
+                </div>
+        
+                <div class="analytics-card">
+                    <h4>Top Books</h4>
+                    <div id="bookAnalytics"></div>
+                </div>
+        
+                <div class="analytics-card">
+                    <h4>Related Terms</h4>
+                    <div id="termAnalytics"></div>
+                </div>
+            </div>
+        
+            <section class="results-section">
+                <h3>Scripture Results</h3>
+                <div id="scriptureResults"></div>
+            </section>
+
+            <!-- Adding this in as a reminder for later 
+            <div class="analytics-card">
+                <h4>Search Summary</h4>
+                <div id="searchSummary"></div>      </div>-->
+        
+            </section>
+    
     </main>
 
 </body>

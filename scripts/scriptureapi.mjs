@@ -3,7 +3,11 @@ import {normalizeScriptureBook, classifyVolume, parseReference} from "./normaliz
 const lookupScripture = document.querySelector("#lookupScripture");
 const verseResults = document.querySelector("#verseResults");
 
-const scriptureAnalytics = document.querySelector("#scriptureAnalytics");
+const volumeAnalytics = document.querySelector("#volumeAnalytics");
+const bookAnalytics = document.querySelector("#bookAnalytics");
+const termAnalytics = document.querySelector("#termAnalytics");
+
+
 const searchScripture = document.querySelector("#searchScripture");
 const scriptureResults = document.querySelector("#scriptureResults");
 
@@ -22,19 +26,12 @@ export async function lookupVerse() {
       parseReference(reference);
 
     if (!parsed) {
-
       verseResults.textContent =
         "Use format: Alma 32:21 or Alma 32:21-24";
-
       return;
     }
 
-    const {
-      book,
-      chapter,
-      startVerse,
-      endVerse
-    } = parsed;
+    const {book, chapter, startVerse, endVerse} = parsed;
 
     let combinedText = "";
 
@@ -49,12 +46,9 @@ export async function lookupVerse() {
           `https://openscriptureapi.org/api/scriptures/v1/lds/en/book/${book}/${chapter}/${currentVerse}`
         );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
-      combinedText +=
-        `${data.reference}\n` +
-        `${data.text}\n\n`;
+      combinedText += `${data.reference}\n` + `${data.text}\n\n`;
 
     }
 
@@ -74,13 +68,19 @@ export async function lookupVerse() {
 export async function searchScriptures() {
 
   const volumeCounts = {};
+  const bookCounts = {};
+
+  volumeAnalytics.innerHTML = "";
+  bookAnalytics.innerHTML = "";
+  termAnalytics.innerHTML = "";
   
-  const searchTerm =
-    searchScripture.value.trim();
+  const searchTerm = searchScripture.value.trim();
 
   if (!searchTerm) {
     return;
   }
+
+  scriptureResults.innerHTML = "";
 
   try {
 
@@ -95,14 +95,11 @@ export async function searchScriptures() {
         `https://openscriptureapi.org/api/scriptures/v1/lds/en/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}&offset=0&word_frequency=true`
       );
 
-    const firstData =
-      await firstResponse.json();
+    const firstData = await firstResponse.json();
 
-    const total =
-      firstData.total;
+    const total = firstData.total;
 
-    let allResults =
-      [...firstData.results];
+    let allResults = [...firstData.results];
 
     console.log(
       "Total Matches:",
@@ -124,37 +121,17 @@ export async function searchScriptures() {
           `https://openscriptureapi.org/api/scriptures/v1/lds/en/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}&offset=${offset}`
         );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
-      allResults.push(
-        ...data.results
-      );
+      allResults.push(...data.results);
 
     }
-
-    // ==========================================
-    // Analytics Container
-    // ==========================================
-
-    scriptureAnalytics.innerHTML =
-      `
-          <h3>
-              Total Matches:
-              ${total}
-          </h3>
-
-          <h3>
-              Records Analyzed:
-              ${allResults.length}
-          </h3>
-      `;
 
     // ==========================================
     // Book Analytics
     // ==========================================
 
-    const bookCounts = {};
+    
 
     allResults.forEach(
       result => {
@@ -186,39 +163,22 @@ export async function searchScriptures() {
       Object.entries(volumeCounts)
         .sort((a, b) => b[1] - a[1]);
 
-    scriptureAnalytics.innerHTML +=
-      `
-  <h3>Volume Analytics</h3>
-`;
+    sortedVolumes
+      .slice(0, 5)
+      .forEach(([volume, count]) => {
 
-    sortedVolumes.forEach(
-      ([volume, count]) => {
-
-        scriptureAnalytics.innerHTML +=
-          `
-          <p>
-              ${volume}: ${count}
-          </p>
-      `;
-      }
-    );
+        volumeAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${volume}</span><span class="count">${count}</span></p>`;
+      });
 
     const sortedBooks = Object.entries(bookCounts).sort((a, b) => b[1] - a[1]);
 
-    scriptureAnalytics.innerHTML +=
-      `
-          <h3>Top Books</h3>
-      `;
+    sortedBooks
+      .slice(0, 5)
+      .forEach(([book, count]) => {
 
-    sortedBooks.forEach(
-      ([book, count]) => {
-
-        scriptureAnalytics.innerHTML +=
-          `
-                  <p>${book}: ${count}</p>
-              `;
-      }
-    );
+        // bookAnalytics.innerHTML += `<p>${book}: ${count}</p>`;
+        bookAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${book}</span><span class="count">${count}</span></p>`;
+      });
 
     // ==========================================
     // Word Frequency Analytics
@@ -234,50 +194,40 @@ export async function searchScriptures() {
       firstData.wordFrequency.length
     ) {
 
-      scriptureAnalytics.innerHTML +=
-        `
-              <h3>Related Terms</h3>
-          `;
+      firstData.wordFrequency
+        .slice(0, 5)
+        .forEach(item => {
 
-      firstData.wordFrequency.forEach(
-        item => {
-
-          scriptureAnalytics.innerHTML +=
-            `
-                      <p>${item.word}: ${item.count}</p>
-                  `;
-        }
-      );
+          // termAnalytics.innerHTML += `<p>${item.word}: ${item.count}</p>`;
+          termAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${item.word}</span><span class="count">${item.count}</span></p>`;
+        });
     }
 
     // ==========================================
-    // Raw Results
+    // Scripture Results
     // ==========================================
 
-    scriptureResults.textContent =
-      JSON.stringify(
-        {
-          query:
-            firstData.query,
+    allResults
+      .slice(0, 25)
+      .forEach(result => {
 
-          total:
-            firstData.total,
+        scriptureResults.innerHTML += `
+          <div class="scripture-card">
+            <h4>${result.reference}</h4>
+            <p>${result.text}</p>
+          </div>
+        `;
 
-          results:
-            allResults.slice(
-              0,
-              25
-            )
-        },
-        null,
-        2
-      );
+      });
 
   }
   catch (error) {
 
     console.error(error);
 
-    scriptureResults.textContent = `Error: ${error.message}`;
+    scriptureResults.textContent =
+      `Error: ${error.message}`;
+
   }
+
 }
