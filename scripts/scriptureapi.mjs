@@ -11,10 +11,14 @@ const termAnalytics = document.querySelector("#termAnalytics");
 const searchScripture = document.querySelector("#searchScripture");
 const scriptureResults = document.querySelector("#scriptureResults");
 
+lookupScripture.value = localStorage.getItem("lastReferenceLookup") || "";
+searchScripture.value = localStorage.getItem("lastScriptureSearch") || "";
+
 export async function lookupVerse() {
 
-  const reference =
-    lookupScripture.value.trim();
+  const reference = lookupScripture.value.trim();
+
+  localStorage.setItem("lastReferenceLookup", reference);
 
   if (!reference) {
     return;
@@ -75,6 +79,8 @@ export async function searchScriptures() {
   termAnalytics.innerHTML = "";
   
   const searchTerm = searchScripture.value.trim();
+
+  localStorage.setItem("lastScriptureSearch", searchTerm);
 
   if (!searchTerm) {
     return;

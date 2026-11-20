@@ -4,8 +4,13 @@ const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
 
+searchInput.value = localStorage.getItem("lastConferenceSearch") || "";
+
 export async function searchConference() {
+
   const searchTerm = searchInput.value.trim();
+
+  localStorage.setItem("lastConferenceSearch", searchTerm);
 
   if (!searchTerm) {
     return;
@@ -71,6 +76,9 @@ export async function searchConference() {
 
     });
 
+    // Comment this section below out for a moment to review the JSON data
+
+
     const talkList =
       Object.values(talks);
 
@@ -84,8 +92,10 @@ export async function searchConference() {
 
     });
 
+    // This is display settings for the results . . . slice changes the number displayed
+
     talkList
-      .slice(0, 25)
+      .slice(0, 5)
       .forEach(talk => {
 
         const conferenceDate =
@@ -121,6 +131,20 @@ export async function searchConference() {
     `;
 
       });
+
+    // Code to see the JSON data easily
+    
+    // const talkList =
+    //   Object.values(talks);
+
+    // conferenceResults.textContent =
+    //   JSON.stringify(
+    //     allResults.slice(0, 5),
+    //     null,
+    //     2
+    //   );
+    
+    // End JSON code display
 
     const speakerCounts = {};
 
@@ -164,7 +188,6 @@ export async function searchConference() {
 
     const sortedDecades =
       Object.entries(decadeCounts)
-        // .sort((a, b) => Number(b[0]) - Number(a[0]));
         .sort((a, b) => b[1] - a[1]);
 
     console.table(sortedDecades);
