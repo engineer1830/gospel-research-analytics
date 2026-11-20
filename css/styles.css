@@ -90,6 +90,12 @@ pre
     line-height: 1.5;   
 }
 
+.match-count {
+    font-weight: bold;
+    color: #003366;
+    cursor: pointer;
+}
+
 .analytics-grid {
     display: grid;
     grid-template-columns:

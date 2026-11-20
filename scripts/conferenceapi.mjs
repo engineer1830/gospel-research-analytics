@@ -3,13 +3,13 @@ const searchInput = document.querySelector("#searchInput");
 const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
-  
+
 export async function searchConference() {
   const searchTerm = searchInput.value.trim();
 
   if (!searchTerm) {
     return;
-    }
+  }
 
   speakerAnalytics.innerHTML = "";
   conferenceResults.innerHTML = "";
@@ -48,51 +48,85 @@ export async function searchConference() {
 
     console.log("Final Result Count:", allResults.length); // This line to be removed when functional
 
-    // Display sample JSON - to be removed when operational . . . or determine what is displayed
-    
-    allResults
-      .slice(0, 25)
-      .forEach(result => {
-
-        const conferenceDate =
-          result.month === 4
-            ? `April ${result.year}`
-            : result.month === 10
-              ? `October ${result.year}`
-              : `${result.month}/${result.year}`;
-
-        const excerpt =
-          result.text.length > 250
-            ? result.text.substring(0, 250) + "..."
-            : result.text;
-
-        conferenceResults.innerHTML += `
-        <div class="conference-card">
-  
-          <h4>${result.title}</h4>
-  
-          <p class="conference-meta">
-            ${result.speaker} •
-            ${result.session} •
-            ${conferenceDate}
-          </p>
-  
-          <p>${excerpt}</p>
-  
-        </div>
-      `;
-
-      });
-
-    // ==========================================
-    // Speaker Analytics
-    // ==========================================
-
-    const speakerCounts = {};
+    const talks = {};
 
     allResults.forEach(result => {
 
-      const speaker = result.speaker;
+      if (!talks[result.talkId]) {
+
+        talks[result.talkId] = {
+          title: result.title,
+          speaker: result.speaker,
+          session: result.session,
+          year: result.year,
+          month: result.month,
+          matches: []
+        };
+
+      }
+
+      talks[result.talkId].matches.push(
+        result.text
+      );
+
+    });
+
+    const talkList =
+      Object.values(talks);
+
+    talkList.sort((a, b) => {
+
+      if (b.year !== a.year) {
+        return b.year - a.year;
+      }
+
+      return b.month - a.month;
+
+    });
+
+    talkList
+      .slice(0, 25)
+      .forEach(talk => {
+
+        const conferenceDate =
+          talk.month === 4
+            ? `April ${talk.year}`
+            : talk.month === 10
+              ? `October ${talk.year}`
+              : `${talk.month}/${talk.year}`;
+
+        const excerpt =
+          talk.matches[0].length > 250
+            ? talk.matches[0].substring(0, 250) + "..."
+            : talk.matches[0];
+
+        conferenceResults.innerHTML += `
+      <div class="conference-card">
+
+        <h4>${talk.title}</h4>
+
+        <p class="conference-meta">
+          ${talk.speaker} •
+          ${talk.session} •
+          ${conferenceDate}
+        </p>
+
+        <p class="match-count">
+          Matches Found: ${talk.matches.length}
+        </p>
+
+        <p>${excerpt}</p>
+
+      </div>
+    `;
+
+      });
+
+    const speakerCounts = {};
+
+    talkList.forEach(talk => {
+
+      const speaker = talk.speaker;
 
       speakerCounts[speaker] =
         (speakerCounts[speaker] || 0) + 1;
@@ -110,7 +144,7 @@ export async function searchConference() {
         speakerAnalytics.innerHTML += `
             <p class="analytics-item"><span class="label">${speaker}</span><span class="count">${count}</span></p>`;
       });
-    
+
 
     // ==========================================
     // Decade Analytics
@@ -118,10 +152,10 @@ export async function searchConference() {
 
     const decadeCounts = {};
 
-    allResults.forEach(result => {
+    talkList.forEach(talk => {
 
       const decade =
-        Math.floor(result.year / 10) * 10;
+        Math.floor(talk.year / 10) * 10;
 
       decadeCounts[decade] =
         (decadeCounts[decade] || 0) + 1;
@@ -130,7 +164,8 @@ export async function searchConference() {
 
     const sortedDecades =
       Object.entries(decadeCounts)
-      .sort((a, b) => Number(b[0]) - Number(a[0]));
+        // .sort((a, b) => Number(b[0]) - Number(a[0]));
+        .sort((a, b) => b[1] - a[1]);
 
     console.table(sortedDecades);
 
