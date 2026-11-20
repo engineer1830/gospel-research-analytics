@@ -38,7 +38,7 @@ export async function searchConference() {
     console.log("Total Matches:", total);
 
     // Get remaining pages (for operations, it should be offset < total, but for proof of concept I have set total = 500 for faster pulls)
-    for (let offset = limit; offset < 500; offset += limit) {
+    for (let offset = limit; offset < total; offset += limit) {
 
       const response = await fetch(
         `https://openscriptureapi.org/api/conference/v1/lds/en/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}&offset=${offset}`
