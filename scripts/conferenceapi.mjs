@@ -70,9 +70,8 @@ export async function searchConference() {
 
       }
 
-      talks[result.talkId].matches.push(
-        result.text
-      );
+      talks[result.talkId].matches.push({
+        paragraph: result.paragraph, text: result.text});
 
     });
 
@@ -95,7 +94,7 @@ export async function searchConference() {
     // This is display settings for the results . . . slice changes the number displayed
 
     talkList
-      .slice(0, 5)
+      .slice(0, 25)
       .forEach(talk => {
 
         const conferenceDate =
@@ -121,16 +120,46 @@ export async function searchConference() {
           ${conferenceDate}
         </p>
 
-        <p class="match-count">
-          Matches Found: ${talk.matches.length}
-        </p>
+        <button class="match-toggle" data-count="${talk.matches.length}">▼ Show ${talk.matches.length } Match(es)</button>
+        
+        <div class="match-list" hidden>
 
-        <p>${excerpt}</p>
+        ${talk.matches.map(match => `
+          <div class="match-entry">
+        
+            <strong>Paragraph ${match.paragraph}</strong>
+            <p>${match.text}</p>
+            </div>`).join("")}
+
+        </div>
 
       </div>
     `;
 
       });
+    
+    document.querySelectorAll(".match-toggle").forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const matchList =
+            button.nextElementSibling;
+
+          matchList.hidden =
+            !matchList.hidden;
+
+          button.textContent =
+            matchList.hidden
+              ? `▼ Show ${button.dataset.count} Match(es)`
+              : `▲ Hide ${button.dataset.count} Match(es)`;
+
+        }
+      );
+
+      });
+    
 
     // Code to see the JSON data easily
     
@@ -193,7 +222,7 @@ export async function searchConference() {
     console.table(sortedDecades);
 
     sortedDecades
-      .slice(0, 5)
+      .slice(0, 7)
       .forEach(([decade, count]) => {
 
         decadeAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${decade}s</span><span class="count">${count}</span></p>`;
