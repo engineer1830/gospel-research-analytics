@@ -4,7 +4,89 @@ const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
 
+let currentTalkList = [];
+
 searchInput.value = localStorage.getItem("lastConferenceSearch") || "";
+
+function renderConferenceResults(talks) {
+
+  conferenceResults.innerHTML = "";
+
+  // Limit displayed talks . . . change number in .slice(0, A) where A is the number displayed
+
+  talks
+    .slice(0, 25)
+    .forEach(talk => {
+
+      const conferenceDate =
+        talk.month === 4
+          ? `April ${talk.year}`
+          : talk.month === 10
+            ? `October ${talk.year}`
+            : `${talk.month}/${talk.year}`;
+
+      conferenceResults.innerHTML += `
+          <div class="conference-card">
+        
+            <h4>${talk.title}</h4>
+        
+            <p class="conference-meta">
+              ${talk.speaker} •
+              ${talk.session} •
+              ${conferenceDate}
+            </p>
+        
+            <button
+              class="match-toggle"
+              data-count="${talk.matches.length}">
+        
+              ▼ Show ${talk.matches.length} Match(es)
+        
+            </button>
+        
+            <div class="match-list" hidden>
+        
+              ${talk.matches.map(match => `
+                <div class="match-entry">
+        
+                  <strong>
+                    Paragraph ${match.paragraph}
+                  </strong>
+        
+                  <p>${match.text}</p>
+        
+                </div>
+              `).join("")}
+        
+            </div>
+        
+          </div>
+        `;
+    });
+
+  document.querySelectorAll(".match-toggle").forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const matchList =
+          button.nextElementSibling;
+
+        matchList.hidden =
+          !matchList.hidden;
+
+        button.textContent =
+          matchList.hidden
+            ? `▼ Show ${button.dataset.count} Match(es)`
+            : `▲ Hide ${button.dataset.count} Match(es)`;
+
+      }
+    );
+
+  });
+
+}
 
 export async function searchConference() {
 
@@ -75,14 +157,11 @@ export async function searchConference() {
 
     });
 
-    // Comment this section below out for a moment to review the JSON data
-
-
-    const talkList =
-      Object.values(talks);
+    const talkList = Object.values(talks);
+    
+    currentTalkList = talkList;
 
     talkList.sort((a, b) => {
-
       if (b.year !== a.year) {
         return b.year - a.year;
       }
@@ -90,90 +169,8 @@ export async function searchConference() {
       return b.month - a.month;
 
     });
-
-    // This is display settings for the results . . . slice changes the number displayed
-
-    talkList
-      .slice(0, 25)
-      .forEach(talk => {
-
-        const conferenceDate =
-          talk.month === 4
-            ? `April ${talk.year}`
-            : talk.month === 10
-              ? `October ${talk.year}`
-              : `${talk.month}/${talk.year}`;
-
-        const excerpt =
-          talk.matches[0].length > 250
-            ? talk.matches[0].substring(0, 250) + "..."
-            : talk.matches[0];
-
-        conferenceResults.innerHTML += `
-      <div class="conference-card">
-
-        <h4>${talk.title}</h4>
-
-        <p class="conference-meta">
-          ${talk.speaker} •
-          ${talk.session} •
-          ${conferenceDate}
-        </p>
-
-        <button class="match-toggle" data-count="${talk.matches.length}">▼ Show ${talk.matches.length } Match(es)</button>
-        
-        <div class="match-list" hidden>
-
-        ${talk.matches.map(match => `
-          <div class="match-entry">
-        
-            <strong>Paragraph ${match.paragraph}</strong>
-            <p>${match.text}</p>
-            </div>`).join("")}
-
-        </div>
-
-      </div>
-    `;
-
-      });
     
-    document.querySelectorAll(".match-toggle").forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const matchList =
-            button.nextElementSibling;
-
-          matchList.hidden =
-            !matchList.hidden;
-
-          button.textContent =
-            matchList.hidden
-              ? `▼ Show ${button.dataset.count} Match(es)`
-              : `▲ Hide ${button.dataset.count} Match(es)`;
-
-        }
-      );
-
-      });
-    
-
-    // Code to see the JSON data easily
-    
-    // const talkList =
-    //   Object.values(talks);
-
-    // conferenceResults.textContent =
-    //   JSON.stringify(
-    //     allResults.slice(0, 5),
-    //     null,
-    //     2
-    //   );
-    
-    // End JSON code display
+    renderConferenceResults(talkList);
 
     const speakerCounts = {};
 
