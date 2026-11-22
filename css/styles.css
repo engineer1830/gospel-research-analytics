@@ -154,7 +154,7 @@ pre {
     margin-bottom: 1rem;
 }
 
-.match-toggle {
+.match-toggle, .full-talk-toggle {
     background-color: #f5f7fa;
     border: 1px solid #d0d7de;
     border-radius: 6px;
@@ -169,7 +169,7 @@ pre {
         transform .2s ease;
 }
 
-.match-toggle:hover {
+.match-toggle:hover, .full-talk-toggle:hover {
     background-color: #e8eef5;
     transform: translateY(-1px);
 }
