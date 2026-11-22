@@ -12,6 +12,8 @@ function renderConferenceResults(talks) {
 
   conferenceResults.innerHTML = "";
 
+  const activeConferenceFilter = document.querySelector("#activeConferenceFilter");
+
   // Limit displayed talks . . . change number in .slice(0, A) where A is the number displayed
 
   talks
@@ -192,10 +194,55 @@ export async function searchConference() {
       .forEach(([speaker, count]) => {
 
         speakerAnalytics.innerHTML += `
-            <p class="analytics-item"><span class="label">${speaker}</span><span class="count">${count}</span></p>`;
+          <p class="analytics-item speaker-filter"
+          data-speaker="${speaker}">
+          <span class="label">${speaker}</span>
+          <span class="count">${count}</span></p>`;
+          });
+
+    document
+      .querySelectorAll(".speaker-filter")
+      .forEach(item => {
+
+        item.addEventListener(
+          "click",
+          () => {
+
+            const speaker = item.dataset.speaker;
+
+            activeConferenceFilter.innerHTML = `
+            <p class="active-filter">Showing: <strong>${speaker}</strong>
+            <button id="clearConferenceFilter">Clear Filter</button></p>`;
+            
+            const filteredTalks =
+              currentTalkList.filter(
+                talk =>
+                  talk.speaker === speaker
+              );
+
+            renderConferenceResults(
+              filteredTalks
+            );
+
+            document
+              .querySelector("#clearConferenceFilter")
+              ?.addEventListener(
+                "click",
+                () => {
+
+                  activeConferenceFilter.innerHTML = "";
+
+                  renderConferenceResults(
+                    currentTalkList
+                  );
+
+                }
+              );
+
+          }
+        );
+
       });
-
-
     // ==========================================
     // Decade Analytics
     // ==========================================
