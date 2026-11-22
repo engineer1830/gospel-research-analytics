@@ -3,6 +3,7 @@ const searchInput = document.querySelector("#searchInput");
 const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
+// const talkCache = {};
 
 let currentTalkList = [];
 
@@ -43,26 +44,22 @@ function renderConferenceResults(talks) {
               data-count="${talk.matches.length}">
         
               ▼ Show ${talk.matches.length} Match(es)
-        
             </button>
-        
+
             <div class="match-list" hidden>
-        
               ${talk.matches.map(match => `
                 <div class="match-entry">
-        
-                  <strong>
-                    Paragraph ${match.paragraph}
-                  </strong>
-        
-                  <p>${match.text}</p>
-        
+                <strong>Paragraph ${match.paragraph}</strong>
+                <p>${match.text}</p>
                 </div>
-              `).join("")}
-        
+            `).join("")}
             </div>
-        
-          </div>
+
+            <button class="full-talk-toggle"
+            data-id="${talk.talkId}">
+            View Full Talk
+            </button>
+            <div class="full-talk-content" hidden></div>
         `;
     });
 
@@ -87,6 +84,63 @@ function renderConferenceResults(talks) {
     );
 
   });
+
+  document
+    .querySelectorAll(".full-talk-toggle")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const talkId =
+            button.dataset.id;
+
+          // console.log(
+          //   "Loading:",
+          //   talkId
+          // );
+
+          const response =
+            await fetch(
+              `https://openscriptureapi.org/api/conference/v1/lds/en/talk/${talkId}`
+            );
+
+          const fullTalk =
+            await response.json();
+
+          const fullTalkContainer =
+            button.nextElementSibling;
+          
+          fullTalkContainer.innerHTML = `
+
+            <div class="full-talk-view">
+              <h4>${fullTalk.title}</h4>  
+              <p><strong>${fullTalk.speaker}</strong></p>
+              <p>${fullTalk.role || ""}</p>
+          
+              ${fullTalk.content.paragraphs
+              .map(paragraph => `
+                  <p>${paragraph.text}</p>
+                `)
+              .join("")}
+          
+            </div>
+          
+          `;
+          fullTalkContainer.hidden =
+            !fullTalkContainer.hidden;
+          
+          button.textContent =
+            fullTalkContainer.hidden
+            ? "▼ View Full Talk"
+            : "▲ Hide Full Talk";
+
+        }
+      );
+
+    });
+
 
 }
 
@@ -132,6 +186,8 @@ export async function searchConference() {
 
       allResults.push(...data.results);
 
+      console.table(allResults.slice(0, 10));
+
       console.log(`Fetched ${allResults.length} of ${total}`);  // This line to be removed when functional
     }
 
@@ -144,6 +200,7 @@ export async function searchConference() {
       if (!talks[result.talkId]) {
 
         talks[result.talkId] = {
+          talkId: result.talkId,
           title: result.title,
           speaker: result.speaker,
           session: result.session,

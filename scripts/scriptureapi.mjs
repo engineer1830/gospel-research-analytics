@@ -214,7 +214,77 @@ export async function searchScriptures() {
       .slice(0, 5)
       .forEach(([book, count]) => {
 
-        bookAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${book}</span><span class="count">${count}</span></p>`;
+        bookAnalytics.innerHTML += `
+          <p class="analytics-item book-filter"
+          data-book="${book}"><span class="label">${book}</span>
+          <span class="count">${count}</span></p>`;
+      });
+    
+    document
+      .querySelectorAll(".book-filter")
+      .forEach(item => {
+
+        item.addEventListener(
+          "click",
+          () => {
+
+            const book =
+              item.dataset.book;
+
+            const filteredResults =
+              currentScriptureList.filter(
+                result => {
+
+                  const normalizedBook =
+                    normalizeScriptureBook(
+                      result.book
+                    );
+
+                  return (
+                    normalizedBook === book
+                  );
+
+                }
+              );
+
+            renderScriptureResults(
+              filteredResults
+            );
+
+            activeScriptureFilter.innerHTML = `
+              <p class="active-filter">
+    
+                Showing:
+                <strong>${book}</strong>
+    
+                <button
+                  id="clearScriptureFilter">
+    
+                  Clear Filter
+    
+                </button>
+    
+              </p>
+            `;
+
+            document
+              .querySelector("#clearScriptureFilter")
+              ?.addEventListener(
+                "click",
+                () => {
+
+                  activeScriptureFilter.innerHTML = "";
+
+                  renderScriptureResults(
+                    currentScriptureList
+                  );
+
+                }
+              );
+
+          }
+        );
+
       });
 
     // ==========================================

@@ -199,7 +199,7 @@ pre {
     color: #003366;
 }
 
-.speaker-filter, .decade-filter, .volume-filter {
+.speaker-filter, .decade-filter, .volume-filter, .book-filter {
     cursor: pointer;
     border-radius: 6px;
     padding: .25rem .5rem;
@@ -209,12 +209,12 @@ pre {
 
 }
 
-.speaker-filter:hover, .decade-filter:hover, .volume-filter:hover {
+.speaker-filter:hover, .decade-filter:hover, .volume-filter:hover, .book-filter:hover {
     background-color: #f5f7fa;
     transform: translateX(3px);
 }
 
-.speaker-filter:hover .label, .decade-filter:hover .label, .volume-filter:hover .label {
+.speaker-filter:hover .label, .decade-filter:hover .label, .volume-filter:hover .label, .book-filter:hover .label {
     color: #003366;
     font-weight: 700;
 }
