@@ -14,6 +14,32 @@ const scriptureResults = document.querySelector("#scriptureResults");
 lookupScripture.value = localStorage.getItem("lastReferenceLookup") || "";
 searchScripture.value = localStorage.getItem("lastScriptureSearch") || "";
 
+let currentScriptureList = [];
+
+function renderScriptureResults(results) {
+
+  scriptureResults.innerHTML = "";
+
+  results
+    .slice(0, 25)
+    .forEach(result => {
+
+      const book = normalizeScriptureBook(result.book);
+
+      scriptureResults.innerHTML += `
+        <div class="scripture-card">
+ 
+        <h4>${book} ${result.chapter}:${result.verse}</h4>
+
+          <p>${result.text}</p>
+
+        </div>
+      `;
+
+    });
+
+}
+
 export async function lookupVerse() {
 
   const reference = lookupScripture.value.trim();
@@ -133,11 +159,13 @@ export async function searchScriptures() {
 
     }
 
+    currentScriptureList = allResults;
+
+    console.log(allResults[0]);
+
     // ==========================================
     // Book Analytics
     // ==========================================
-
-    
 
     allResults.forEach(
       result => {
@@ -173,7 +201,11 @@ export async function searchScriptures() {
       .slice(0, 5)
       .forEach(([volume, count]) => {
 
-        volumeAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${volume}</span><span class="count">${count}</span></p>`;
+        volumeAnalytics.innerHTML += `
+          <p class="analytics-item volume-filter"
+          data-volume="${volume}">
+          <span class="label">${volume}</span>
+          <span class="count">${count}</span></p>`;
       });
 
     const sortedBooks = Object.entries(bookCounts).sort((a, b) => b[1] - a[1]);
@@ -182,7 +214,6 @@ export async function searchScriptures() {
       .slice(0, 5)
       .forEach(([book, count]) => {
 
-        // bookAnalytics.innerHTML += `<p>${book}: ${count}</p>`;
         bookAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${book}</span><span class="count">${count}</span></p>`;
       });
 
@@ -204,7 +235,6 @@ export async function searchScriptures() {
         .slice(0, 5)
         .forEach(item => {
 
-          // termAnalytics.innerHTML += `<p>${item.word}: ${item.count}</p>`;
           termAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${item.word}</span><span class="count">${item.count}</span></p>`;
         });
     }
@@ -213,18 +243,79 @@ export async function searchScriptures() {
     // Scripture Results
     // ==========================================
 
-    allResults
-      .slice(0, 25)
-      .forEach(result => {
+    renderScriptureResults(allResults);
 
-        scriptureResults.innerHTML += `
-          <div class="scripture-card">
-            <h4>${result.reference}</h4>
-            <p>${result.text}</p>
-          </div>
-        `;
+    const activeScriptureFilter =
+      document.querySelector(
+        "#activeScriptureFilter"
+      );
+    
+    document
+      .querySelectorAll(".volume-filter")
+      .forEach(item => {
+
+        item.addEventListener(
+          "click",
+          () => {
+
+            const volume =
+              item.dataset.volume;
+
+            const filteredResults =
+              currentScriptureList.filter(
+                result => {
+
+                  const book =
+                    normalizeScriptureBook(
+                      result.book
+                    );
+
+                  return (
+                    classifyVolume(book)
+                    === volume
+                  );
+
+                }
+              );
+            
+            renderScriptureResults(
+              filteredResults
+              );
+
+            activeScriptureFilter.innerHTML = `
+              <p class="active-filter">
+    
+                Showing:
+                <strong>${volume}</strong>
+    
+                <button
+                  id="clearScriptureFilter">
+    
+                  Clear Filter
+    
+                </button>
+    
+              </p>
+            `;
+
+            document
+              .querySelector("#clearScriptureFilter")
+              ?.addEventListener(
+                "click",
+                () => {
+
+                  activeScriptureFilter.innerHTML = "";
+
+                  renderScriptureResults(
+                    currentScriptureList
+                  );
+                }
+              );
+          }
+        );
 
       });
+    
 
   }
   catch (error) {

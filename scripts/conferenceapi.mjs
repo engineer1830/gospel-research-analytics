@@ -269,7 +269,67 @@ export async function searchConference() {
       .slice(0, 7)
       .forEach(([decade, count]) => {
 
-        decadeAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${decade}s</span><span class="count">${count}</span></p>`;
+        // decadeAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${decade}s</span><span class="count">${count}</span></p>`;
+      
+        decadeAnalytics.innerHTML += `
+          <p class="analytics-item decade-filter"
+          data-decade="${decade}">
+          <span class="label">${decade}s</span>
+          <span class="count">${count}</span></p>`;
+        
+        document
+          .querySelectorAll(".decade-filter")
+          .forEach(item => {
+
+            item.addEventListener(
+              "click",
+              () => {
+
+                const decade =
+                  Number(item.dataset.decade);
+
+                activeConferenceFilter.innerHTML = `
+                  <p class="active-filter">
+                    Showing:
+                    <strong>${decade}s</strong>
+        
+                    <button id="clearConferenceFilter">
+                      Clear Filter
+                    </button>
+                  </p>
+                `;
+
+                const filteredTalks =
+                  currentTalkList.filter(
+                    talk =>
+                      Math.floor(talk.year / 10) * 10
+                      === decade
+                  );
+
+                renderConferenceResults(
+                  filteredTalks
+                );
+
+                document
+                  .querySelector("#clearConferenceFilter")
+                  ?.addEventListener(
+                    "click",
+                    () => {
+
+                      activeConferenceFilter.innerHTML = "";
+
+                      renderConferenceResults(
+                        currentTalkList
+                      );
+
+                    }
+                  );
+
+              }
+            );
+
+          });
+      
       });
 
   } catch (error) {
