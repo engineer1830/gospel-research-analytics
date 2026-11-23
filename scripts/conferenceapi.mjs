@@ -3,8 +3,8 @@ const searchInput = document.querySelector("#searchInput");
 const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
-
 const insightResults = document.querySelector("#insightResults");
+const loadingStatus = document.querySelector("#loadingStatus");
 
 // const talkCache = {};
 
@@ -171,10 +171,16 @@ function renderConferenceResults(talks) {
           `;
 
           const filteredTalks =
-            currentTalkList.filter(
-              talk =>
-                talk.speaker === speaker
-            );
+            currentTalkList
+              .filter(
+                talk =>
+                  talk.speaker === speaker
+              )
+              .sort(
+                (a, b) =>
+                  b.matches.length -
+                  a.matches.length
+              );
 
           renderConferenceResults(
             filteredTalks
@@ -277,30 +283,101 @@ function renderInsights(talks, label) {
   const talkCount = talks.length;
   const speakerCount = new Set(talks.map(talk => talk.speaker)).size;
   const paragraphCount = talks.reduce((total, talk) => total + talk.matches.length, 0);
+  const mostRelevantTalk = talks.length > 0 ? [...talks].sort((a, b) => b.matches.length - a.matches.length)[0] : null;
+  const conferenceTotals = {};
+
+  talks.forEach(talk => {
+
+    const conferenceKey =
+      talk.month === 4
+        ? `April ${talk.year}`
+        : `October ${talk.year}`;
+
+    conferenceTotals[conferenceKey] =
+      (conferenceTotals[conferenceKey] || 0)
+      + talk.matches.length;
+
+  });
+
+  const mostRelevantConference =
+    Object.entries(conferenceTotals)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )[0];
 
   insightResults.innerHTML = `
-  <h3>Insight Summary</h3>
-  <div class="insight-card">
-      <h3>${label}</h3>
-
-      <h3>Insights for ${label}</h3>
-
-      <p>
-        <strong>Matching Talks:</strong>
-        ${talkCount}
-      </p>
-
-      <p>
-        <strong>Matching Speakers:</strong>
-        ${speakerCount}
-      </p>
-
-      <p>
-        <strong>Matching Paragraphs:</strong>
-        ${paragraphCount}
-      </p>
-    </div>
-  `;
+      <h3>Insight Summary</h3>
+    
+      <div class="insight-card">
+    
+        <div class="insight-header">
+          <h3>Insights for ${label}</h3>
+        </div>
+    
+        <div class="insight-metrics">
+    
+          <div class="metric-card">
+            <div class="metric-number">
+              ${talkCount}
+            </div>
+            <div class="metric-label">
+              Talks Found
+            </div>
+          </div>
+    
+          <div class="metric-card">
+            <div class="metric-number">
+              ${paragraphCount}
+            </div>
+            <div class="metric-label">
+              Paragraph Matches
+            </div>
+          </div>
+    
+          <div class="metric-card">
+            <div class="metric-number">
+              ${speakerCount}
+            </div>
+            <div class="metric-label">
+              Speakers Found
+            </div>
+          </div>
+    
+        </div>
+    
+        ${mostRelevantTalk ? `
+          <div class="recommendation-card">
+    
+            <h4>Most Relevant Talk</h4>
+    
+            <p>${mostRelevantTalk.title}</p>
+    
+            <span>
+              ${mostRelevantTalk.matches.length}
+              matches
+            </span>
+    
+          </div>
+        ` : ""}
+    
+        ${mostRelevantConference ? `
+          <div class="recommendation-card">
+    
+            <h4>Most Relevant Conference</h4>
+    
+            <p>${mostRelevantConference[0]}</p>
+    
+            <span>
+              ${mostRelevantConference[1]}
+              matches
+            </span>
+    
+          </div>
+        ` : ""}
+    
+      </div>
+    `;
 }
 
 export async function searchConference() {
@@ -317,6 +394,15 @@ export async function searchConference() {
   conferenceResults.innerHTML = "";
   decadeAnalytics.innerHTML = "";
   insightResults.innerHTML = "";
+
+  loadingStatus.innerHTML = `
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <h3>Searching Conference Talks...</h3>
+    <p>Gathering talks and building analytics.</p>
+  </div>
+`;
+
 
   try {
 
@@ -348,7 +434,39 @@ export async function searchConference() {
 
       console.table(allResults.slice(0, 10));
 
-      console.log(`Fetched ${allResults.length} of ${total}`);  // This line to be removed when functional
+      const percent = Math.round((allResults.length / total) * 100);
+
+      let loadingMessage =
+        "Searching Conference Talks...";
+
+      if (percent >= 95) {
+        loadingMessage =
+          "✓ Study Insights Ready";
+      }
+      else if (percent >= 75) {
+        loadingMessage =
+          "Generating Study Insights...";
+      }
+      else if (percent >= 50) {
+        loadingMessage =
+          "Building Conference Analytics...";
+      }
+      else if (percent >= 25) {
+        loadingMessage =
+          "Collecting Conference Results...";
+      }
+
+      loadingStatus.innerHTML = `
+      <div class="loading-card">
+      <div class="spinner"></div>
+      <h3>${loadingMessage}</h3>
+      <p>Loaded ${allResults.length} of ${total} matches</p>
+      <div class="progress-bar">
+      <div class="progress-fill" style="width:${percent}%"></div>
+      </div>
+      <p>${percent}% Complete</p>
+  </div>
+`;
     }
 
     console.log("Final Result Count:", allResults.length); // This line to be removed when functional
@@ -389,6 +507,8 @@ export async function searchConference() {
       return b.month - a.month;
 
     });
+
+    loadingStatus.innerHTML = "";
 
     renderConferenceResults(talkList);
 
@@ -433,10 +553,16 @@ export async function searchConference() {
             <button id="clearConferenceFilter">Clear Filter</button></p>`;
 
             const filteredTalks =
-              currentTalkList.filter(
-                talk =>
-                  talk.speaker === speaker
-              );
+              currentTalkList
+                .filter(
+                  talk =>
+                    talk.speaker === speaker
+                )
+                .sort(
+                  (a, b) =>
+                    b.matches.length -
+                    a.matches.length
+                );
 
             renderConferenceResults(
               filteredTalks
