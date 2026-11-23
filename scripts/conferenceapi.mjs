@@ -3,6 +3,9 @@ const searchInput = document.querySelector("#searchInput");
 const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
+
+const insightResults = document.querySelector("#insightResults");
+
 // const talkCache = {};
 
 let currentTalkList = [];
@@ -115,7 +118,7 @@ function renderConferenceResults(talks) {
 
           const fullTalkContainer =
             button.nextElementSibling;
-          
+
           fullTalkContainer.innerHTML = `
 
             <div class="full-talk-view">
@@ -134,11 +137,11 @@ function renderConferenceResults(talks) {
           `;
           fullTalkContainer.hidden =
             !fullTalkContainer.hidden;
-          
+
           button.textContent =
             fullTalkContainer.hidden
-            ? "▼ View Full Talk"
-            : "▲ Hide Full Talk";
+              ? "▼ View Full Talk"
+              : "▲ Hide Full Talk";
 
         }
       );
@@ -177,6 +180,10 @@ function renderConferenceResults(talks) {
             filteredTalks
           );
 
+          renderInsights(
+            filteredTalks, speaker
+          );
+
           document
             .querySelector("#clearConferenceFilter")
             ?.addEventListener(
@@ -185,8 +192,9 @@ function renderConferenceResults(talks) {
 
                 activeConferenceFilter.innerHTML = "";
 
-                renderConferenceResults(
-                  currentTalkList
+                insightResults.innerHTML = "";
+
+                renderConferenceResults(currentTalkList
                 );
 
               }
@@ -196,7 +204,7 @@ function renderConferenceResults(talks) {
       );
 
     });
-  
+
   document
     .querySelectorAll(".conference-link")
     .forEach(item => {
@@ -238,6 +246,10 @@ function renderConferenceResults(talks) {
             filteredTalks
           );
 
+          renderInsights(
+            filteredTalks, conferenceDate
+          );
+
           document
             .querySelector("#clearConferenceFilter")
             ?.addEventListener(
@@ -246,9 +258,9 @@ function renderConferenceResults(talks) {
 
                 activeConferenceFilter.innerHTML = "";
 
-                renderConferenceResults(
-                  currentTalkList
-                );
+                insightResults.innerHTML = "";
+
+                renderConferenceResults(currentTalkList);
 
               }
             );
@@ -258,6 +270,37 @@ function renderConferenceResults(talks) {
 
     });
 
+}
+
+function renderInsights(talks, label) {
+
+  const talkCount = talks.length;
+  const speakerCount = new Set(talks.map(talk => talk.speaker)).size;
+  const paragraphCount = talks.reduce((total, talk) => total + talk.matches.length, 0);
+
+  insightResults.innerHTML = `
+  <h3>Insight Summary</h3>
+  <div class="insight-card">
+      <h3>${label}</h3>
+
+      <h3>Insights for ${label}</h3>
+
+      <p>
+        <strong>Matching Talks:</strong>
+        ${talkCount}
+      </p>
+
+      <p>
+        <strong>Matching Speakers:</strong>
+        ${speakerCount}
+      </p>
+
+      <p>
+        <strong>Matching Paragraphs:</strong>
+        ${paragraphCount}
+      </p>
+    </div>
+  `;
 }
 
 export async function searchConference() {
@@ -273,6 +316,7 @@ export async function searchConference() {
   speakerAnalytics.innerHTML = "";
   conferenceResults.innerHTML = "";
   decadeAnalytics.innerHTML = "";
+  insightResults.innerHTML = "";
 
   try {
 
@@ -328,12 +372,13 @@ export async function searchConference() {
       }
 
       talks[result.talkId].matches.push({
-        paragraph: result.paragraph, text: result.text});
+        paragraph: result.paragraph, text: result.text
+      });
 
     });
 
     const talkList = Object.values(talks);
-    
+
     currentTalkList = talkList;
 
     talkList.sort((a, b) => {
@@ -344,7 +389,7 @@ export async function searchConference() {
       return b.month - a.month;
 
     });
-    
+
     renderConferenceResults(talkList);
 
     const speakerCounts = {};
@@ -371,7 +416,7 @@ export async function searchConference() {
           data-speaker="${speaker}">
           <span class="label">${speaker}</span>
           <span class="count">${count}</span></p>`;
-          });
+      });
 
     document
       .querySelectorAll(".speaker-filter")
@@ -386,7 +431,7 @@ export async function searchConference() {
             activeConferenceFilter.innerHTML = `
             <p class="active-filter">Showing: <strong>${speaker}</strong>
             <button id="clearConferenceFilter">Clear Filter</button></p>`;
-            
+
             const filteredTalks =
               currentTalkList.filter(
                 talk =>
@@ -397,6 +442,10 @@ export async function searchConference() {
               filteredTalks
             );
 
+            renderInsights(
+              filteredTalks, speaker
+            );
+
             document
               .querySelector("#clearConferenceFilter")
               ?.addEventListener(
@@ -404,6 +453,8 @@ export async function searchConference() {
                 () => {
 
                   activeConferenceFilter.innerHTML = "";
+
+                  insightResults.innerHTML = "";
 
                   renderConferenceResults(
                     currentTalkList
@@ -443,13 +494,13 @@ export async function searchConference() {
       .forEach(([decade, count]) => {
 
         // decadeAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${decade}s</span><span class="count">${count}</span></p>`;
-      
+
         decadeAnalytics.innerHTML += `
           <p class="analytics-item decade-filter"
           data-decade="${decade}">
           <span class="label">${decade}s</span>
           <span class="count">${count}</span></p>`;
-        
+
         document
           .querySelectorAll(".decade-filter")
           .forEach(item => {
@@ -483,6 +534,12 @@ export async function searchConference() {
                   filteredTalks
                 );
 
+                renderInsights(
+                  filteredTalks,
+                  `${decade}s`
+                );
+
+
                 document
                   .querySelector("#clearConferenceFilter")
                   ?.addEventListener(
@@ -490,6 +547,8 @@ export async function searchConference() {
                     () => {
 
                       activeConferenceFilter.innerHTML = "";
+
+                      insightResults.innerHTML = "";
 
                       renderConferenceResults(
                         currentTalkList
@@ -502,7 +561,7 @@ export async function searchConference() {
             );
 
           });
-      
+
       });
 
   } catch (error) {
