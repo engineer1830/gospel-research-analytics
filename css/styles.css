@@ -233,3 +233,22 @@ pre {
 .active-filter button {
     cursor: pointer;
 }
+
+.speaker-link {
+    color: #0057b8;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.speaker-link:hover {
+    text-decoration: underline; }
+
+.conference-link {
+    color: #0057b8;
+    cursor: pointer;
+    font-weight: 600;
+}
+    
+.conference-link:hover {
+    text-decoration: underline;     
+}

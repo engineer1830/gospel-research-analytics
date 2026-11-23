@@ -34,10 +34,14 @@ function renderConferenceResults(talks) {
             <h4>${talk.title}</h4>
         
             <p class="conference-meta">
-              ${talk.speaker} •
-              ${talk.session} •
-              ${conferenceDate}
-            </p>
+            <span class="speaker-link"
+            data-speaker="${talk.speaker}">${talk.speaker}</span> •
+            ${talk.session} •
+
+            <span class="conference-link"
+            data-year="${talk.year}"
+            data-month="${talk.month}">
+            ${conferenceDate}</span></p>
         
             <button
               class="match-toggle"
@@ -141,6 +145,118 @@ function renderConferenceResults(talks) {
 
     });
 
+  document
+    .querySelectorAll(".speaker-link")
+    .forEach(item => {
+
+      item.addEventListener(
+        "click",
+        () => {
+
+          const speaker =
+            item.dataset.speaker;
+
+          activeConferenceFilter.innerHTML = `
+            <p class="active-filter">
+              Showing:
+              <strong>${speaker}</strong>
+  
+              <button id="clearConferenceFilter">
+                Clear Filter
+              </button>
+            </p>
+          `;
+
+          const filteredTalks =
+            currentTalkList.filter(
+              talk =>
+                talk.speaker === speaker
+            );
+
+          renderConferenceResults(
+            filteredTalks
+          );
+
+          document
+            .querySelector("#clearConferenceFilter")
+            ?.addEventListener(
+              "click",
+              () => {
+
+                activeConferenceFilter.innerHTML = "";
+
+                renderConferenceResults(
+                  currentTalkList
+                );
+
+              }
+            );
+
+        }
+      );
+
+    });
+  
+  document
+    .querySelectorAll(".conference-link")
+    .forEach(item => {
+
+      item.addEventListener(
+        "click",
+        () => {
+
+          const year =
+            Number(item.dataset.year);
+
+          const month =
+            Number(item.dataset.month);
+
+          const conferenceDate =
+            month === 4
+              ? `April ${year}`
+              : `October ${year}`;
+
+          activeConferenceFilter.innerHTML = `
+            <p class="active-filter">
+              Showing:
+              <strong>${conferenceDate}</strong>
+  
+              <button id="clearConferenceFilter">
+                Clear Filter
+              </button>
+            </p>
+          `;
+
+          const filteredTalks =
+            currentTalkList.filter(
+              talk =>
+                talk.year === year &&
+                talk.month === month
+            );
+
+          renderConferenceResults(
+            filteredTalks
+          );
+
+          document
+            .querySelector("#clearConferenceFilter")
+            ?.addEventListener(
+              "click",
+              () => {
+
+                activeConferenceFilter.innerHTML = "";
+
+                renderConferenceResults(
+                  currentTalkList
+                );
+
+              }
+            );
+
+        }
+      );
+
+    });
 
 }
 
