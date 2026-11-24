@@ -6,7 +6,7 @@ const decadeAnalytics = document.querySelector("#yearResults");
 const insightResults = document.querySelector("#insightResults");
 const loadingStatus = document.querySelector("#loadingStatus");
 
-// const talkCache = {};
+const talkCache = {};
 
 let currentTalkList = [];
 
@@ -64,7 +64,7 @@ function renderConferenceResults(talks) {
 
             <button class="full-talk-toggle"
             data-id="${talk.talkId}">
-            View Full Talk
+            ▼ View Full Talk
             </button>
             <div class="full-talk-content" hidden></div>
         `;
@@ -100,24 +100,43 @@ function renderConferenceResults(talks) {
         "click",
         async () => {
 
-          const talkId =
-            button.dataset.id;
+          const talkId = button.dataset.id;
 
-          // console.log(
-          //   "Loading:",
-          //   talkId
-          // );
+          let fullTalk;
 
-          const response =
-            await fetch(
-              `https://openscriptureapi.org/api/conference/v1/lds/en/talk/${talkId}`
-            );
+          const fullTalkContainer = button.nextElementSibling;
 
-          const fullTalk =
-            await response.json();
+          if (fullTalkContainer.innerHTML.trim()) {
 
-          const fullTalkContainer =
-            button.nextElementSibling;
+            fullTalkContainer.hidden = !fullTalkContainer.hidden;
+
+            button.textContent =
+              fullTalkContainer.hidden
+                ? "▼ View Full Talk"
+                : "▲ Hide Full Talk";
+
+            console.log("Toggled existing talk:", talkId);
+
+            return;
+          }
+
+          if (talkCache[talkId]) {
+
+            console.log("Loaded from Cache:", talkId);
+
+            fullTalk = talkCache[talkId];
+
+          } else {
+
+            console.log("Fetched from API:", talkId);
+
+            const response =
+              await fetch(`https://openscriptureapi.org/api/conference/v1/lds/en/talk/${talkId}`);
+
+            fullTalk = await response.json();
+
+            talkCache[talkId] = fullTalk;
+          }
 
           fullTalkContainer.innerHTML = `
 
@@ -135,8 +154,8 @@ function renderConferenceResults(talks) {
             </div>
           
           `;
-          fullTalkContainer.hidden =
-            !fullTalkContainer.hidden;
+
+          fullTalkContainer.hidden = false;
 
           button.textContent =
             fullTalkContainer.hidden
