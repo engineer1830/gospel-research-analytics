@@ -5,6 +5,7 @@ const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
 const insightResults = document.querySelector("#insightResults");
 const loadingStatus = document.querySelector("#loadingStatus");
+const activeConferenceFilter = document.querySelector("#activeConferenceFilter");
 
 const talkCache = {};
 
@@ -15,8 +16,6 @@ searchInput.value = localStorage.getItem("lastConferenceSearch") || "";
 function renderConferenceResults(talks) {
 
   conferenceResults.innerHTML = "";
-
-  const activeConferenceFilter = document.querySelector("#activeConferenceFilter");
 
   // Limit displayed talks . . . change number in .slice(0, A) where A is the number displayed
 
@@ -440,7 +439,7 @@ export async function searchConference() {
 
     console.log("Total Matches:", total);
 
-    // Get remaining pages (for operations, it should be offset < total, but for proof of concept I have set total = 500 for faster pulls)
+    // Get remaining pages (for operations, it should be offset < total, but for troubleshooting, set total = 500 or 100 for faster pulls)
     for (let offset = limit; offset < total; offset += limit) {
 
       const response = await fetch(
@@ -583,13 +582,9 @@ export async function searchConference() {
                     a.matches.length
                 );
 
-            renderConferenceResults(
-              filteredTalks
-            );
+            renderConferenceResults(filteredTalks);
 
-            renderInsights(
-              filteredTalks, speaker
-            );
+            renderInsights(filteredTalks, speaker);
 
             document
               .querySelector("#clearConferenceFilter")
@@ -601,17 +596,13 @@ export async function searchConference() {
 
                   insightResults.innerHTML = "";
 
-                  renderConferenceResults(
-                    currentTalkList
-                  );
-
+                  renderConferenceResults(currentTalkList);
                 }
               );
-
           }
         );
-
       });
+    
     // ==========================================
     // Decade Analytics
     // ==========================================
@@ -634,79 +625,67 @@ export async function searchConference() {
 
     console.table(sortedDecades);
 
+    decadeAnalytics.innerHTML = "";
+
     sortedDecades
       .slice(0, 7)
       .forEach(([decade, count]) => {
-
-        // decadeAnalytics.innerHTML += `<p class="analytics-item"><span class="label">${decade}s</span><span class="count">${count}</span></p>`;
 
         decadeAnalytics.innerHTML += `
           <p class="analytics-item decade-filter"
           data-decade="${decade}">
           <span class="label">${decade}s</span>
           <span class="count">${count}</span></p>`;
+      });
 
-        document
-          .querySelectorAll(".decade-filter")
-          .forEach(item => {
+    document.querySelectorAll(".decade-filter").forEach(item => {
 
-            item.addEventListener(
-              "click",
-              () => {
+        item.addEventListener(
+          "click",
+          () => {
 
-                const decade =
-                  Number(item.dataset.decade);
+            const decade = Number(item.dataset.decade);
 
-                activeConferenceFilter.innerHTML = `
-                  <p class="active-filter">
-                    Showing:
-                    <strong>${decade}s</strong>
-        
-                    <button id="clearConferenceFilter">
-                      Clear Filter
-                    </button>
-                  </p>
-                `;
+            activeConferenceFilter.innerHTML = `
+              <p class="active-filter">
+                Showing:
+                <strong>${decade}s</strong>
+    
+                <button id="clearConferenceFilter">
+                  Clear Filter
+                </button>
+              </p>
+            `;
 
-                const filteredTalks =
-                  currentTalkList.filter(
-                    talk =>
-                      Math.floor(talk.year / 10) * 10
-                      === decade
+            const filteredTalks =
+              currentTalkList.filter(
+                talk =>
+                  Math.floor(talk.year / 10) * 10
+                  === decade
+              );
+
+            renderConferenceResults(filteredTalks);
+
+            renderInsights(filteredTalks,`${decade}s`);
+
+
+            document
+              .querySelector("#clearConferenceFilter")
+              ?.addEventListener(
+                "click",
+                () => {
+
+                  activeConferenceFilter.innerHTML = "";
+
+                  insightResults.innerHTML = "";
+
+                  renderConferenceResults(
+                    currentTalkList
                   );
-
-                renderConferenceResults(
-                  filteredTalks
-                );
-
-                renderInsights(
-                  filteredTalks,
-                  `${decade}s`
-                );
-
-
-                document
-                  .querySelector("#clearConferenceFilter")
-                  ?.addEventListener(
-                    "click",
-                    () => {
-
-                      activeConferenceFilter.innerHTML = "";
-
-                      insightResults.innerHTML = "";
-
-                      renderConferenceResults(
-                        currentTalkList
-                      );
-
-                    }
-                  );
-
-              }
-            );
-
-          });
-
+                }
+              );
+          }
+        );
       });
 
   } catch (error) {
