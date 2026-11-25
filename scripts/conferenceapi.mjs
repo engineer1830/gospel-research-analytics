@@ -3,10 +3,13 @@ const searchInput = document.querySelector("#searchInput");
 const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
+
 const insightResults = document.querySelector("#insightResults");
 const loadingStatus = document.querySelector("#loadingStatus");
+
 const activeConferenceFilter = document.querySelector("#activeConferenceFilter");
 const resultsSummary = document.querySelector("#resultsSummary");
+const studyCompanion = document.querySelector("#studyCompanion");
 
 const talkCache = {};
 
@@ -68,19 +71,15 @@ document
       console.log(
         "Sort Changed:",
         document.querySelector("#sortOption").value
-      );
+      ); // To be removed...............................
 
-      renderConferenceResults(
-        sortTalks(currentDisplayedTalks)
-      );
-
+      renderConferenceResults(sortTalks(currentDisplayedTalks));
     }
   );
 
 function renderResultsSummary(talks) {
 
-  const sortOption =
-    document.querySelector("#sortOption").value;
+  const sortOption = document.querySelector("#sortOption").value;
 
   const activeFilter =
     activeConferenceFilter.textContent
@@ -103,66 +102,33 @@ function renderResultsSummary(talks) {
 
   resultsSummary.innerHTML = `
       <div class="summary-card">
-  
         <div class="summary-metric summary-filter">
-  
-          <span class="summary-number">
-            ${activeFilter}
-          </span>
-  
-          <span class="summary-label">
-            Active Filter
-          </span>
-  
+          <span class="summary-number">${activeFilter}</span>
+          <span class="summary-label">Active Filter</span>
         </div>
   
         <div class="summary-metric">
-  
-          <span class="summary-number">
-            ${Math.min(talks.length, 25)}
-          </span>
-  
-          <span class="summary-label">
-            Showing
-          </span>
-  
+          <span class="summary-number">${Math.min(talks.length, 25)}</span>
+          <span class="summary-label">Showing</span>
         </div>
-
         <div class="summary-metric">
-
-        <span class="summary-number">
-          ${speakerCount}
-        </span>
-
-        <span class="summary-label">
-          Speakers
-        </span>
-
+        <span class="summary-number"> ${speakerCount}</span>
+        <span class="summary-label">Speakers</span>
       </div>
-  
         <div class="summary-metric">
-  
-          <span class="summary-number">
-            ${sortLabel}
-          </span>
-  
-          
+          <span class="summary-number"> ${sortLabel}</span>
           <span class="summary-label">
             Sorted By
           </span>
-  
         </div>
-  
       </div>
     `;
-
 }
 
 function renderConferenceResults(talks) {
 
   currentDisplayedTalks = talks;
   renderResultsSummary(talks);
-
   conferenceResults.innerHTML = "";
 
   // Limit displayed talks . . . change number in .slice(0, A) where A is the number displayed
@@ -222,7 +188,6 @@ function renderConferenceResults(talks) {
     button.addEventListener(
       "click",
       () => {
-
         const matchList =
           button.nextElementSibling;
 
@@ -235,24 +200,19 @@ function renderConferenceResults(talks) {
           matchList.hidden
             ? `▼ Show ${button.dataset.count} Match(es)`
             : `▲ Hide ${button.dataset.count} Match(es)`;
-
       }
     );
-
   });
 
   document
     .querySelectorAll(".full-talk-toggle")
     .forEach(button => {
-
       button.addEventListener(
         "click",
         async () => {
 
           const talkId = button.dataset.id;
-
           let fullTalk;
-
           const fullTalkContainer = button.nextElementSibling;
 
           if (fullTalkContainer.innerHTML.trim()) {
@@ -270,25 +230,20 @@ function renderConferenceResults(talks) {
                 : "▲ Hide Full Talk";
 
             console.log("Toggled existing talk:", talkId);
-
             return;
           }
 
           if (talkCache[talkId]) {
-
             console.log("Loaded from Cache:", talkId);
-
             fullTalk = talkCache[talkId];
+          }
+          else {
 
-          } else {
-
-            console.log("Fetched from API:", talkId);
-
+            console.log("Fetched from API:", talkId); // To be deleted when ready
             const response =
               await fetch(`https://openscriptureapi.org/api/conference/v1/lds/en/talk/${talkId}`);
 
             fullTalk = await response.json();
-
             talkCache[talkId] = fullTalk;
           }
 
@@ -304,9 +259,7 @@ function renderConferenceResults(talks) {
                   <p>${paragraph.text}</p>
                 `)
               .join("")}
-          
             </div>
-          
           `;
 
           fullTalkContainer.hidden = false;
@@ -353,8 +306,8 @@ function renderConferenceResults(talks) {
               )
 
           renderConferenceResults(sortTalks(filteredTalks));
-
           renderInsights(filteredTalks, speaker);
+          renderStudyCompanion(filteredTalks);
 
           document
             .querySelector("#clearConferenceFilter")
@@ -363,14 +316,10 @@ function renderConferenceResults(talks) {
               () => {
 
                 activeConferenceFilter.innerHTML = "";
-
                 insightResults.innerHTML = "";
-
                 renderConferenceResults(sortTalks(currentTalkList));
-
               }
             );
-
         }
       );
 
@@ -414,8 +363,8 @@ function renderConferenceResults(talks) {
             );
 
           renderConferenceResults(sortTalks(filteredTalks));
-
           renderInsights(filteredTalks, conferenceDate);
+          renderStudyCompanion(filteredTalks);
 
           document
             .querySelector("#clearConferenceFilter")
@@ -424,9 +373,7 @@ function renderConferenceResults(talks) {
               () => {
 
                 activeConferenceFilter.innerHTML = "";
-
                 insightResults.innerHTML = "";
-
                 renderConferenceResults(sortTalks(currentTalkList));
               }
             );
@@ -434,6 +381,232 @@ function renderConferenceResults(talks) {
       );
     });
 
+}
+
+function renderStudyCompanion(talks) {
+
+  if (!talks.length) {
+    studyCompanion.innerHTML = "";
+    return;
+  }
+
+  const recommendedTalk =
+    [...talks]
+      .sort(
+        (a, b) =>
+          b.matches.length -
+          a.matches.length
+      )[0];
+
+  const speakerTotals = {};
+
+  talks.forEach(talk => {
+
+    speakerTotals[talk.speaker] =
+      (speakerTotals[talk.speaker] || 0)
+      + talk.matches.length;
+  });
+
+  const recommendedSpeaker =
+    Object.entries(speakerTotals)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )[0];
+
+  const conferenceTotals = {};
+  const conferenceMetadata = {};
+
+  talks.forEach(talk => {
+
+    const conferenceKey =
+      talk.month === 4
+        ? `April ${talk.year}`
+        : `October ${talk.year}`;
+
+    conferenceMetadata[conferenceKey] = {
+      year: talk.year,
+      month: talk.month
+    };
+
+    conferenceTotals[conferenceKey] =
+      (conferenceTotals[conferenceKey] || 0)
+      + talk.matches.length;
+
+  });
+
+  const recommendedConference =
+    Object.entries(conferenceTotals)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )[0];
+
+  const conferenceInfo =
+    conferenceMetadata[
+    recommendedConference[0]
+    ];
+
+  studyCompanion.innerHTML = `
+    <div class="study-companion-card">
+
+      <h3>
+        Study Companion
+      </h3>
+
+      <div class="companion-grid">
+
+        <div class="companion-item">
+          <h4>📖 Recommended Talk</h4>
+          <p class="companion-talk" data-id="${recommendedTalk.talkId}">${recommendedTalk.title}</p>
+          <span>${recommendedTalk.matches.length} matches</span>
+        </div>
+
+        <div class="companion-item">
+          <h4>🎙 Recommended Speaker</h4>
+          <p class="companion-speaker" data-speaker="${recommendedSpeaker[0]}">${recommendedSpeaker[0]}</p>
+          <span>${recommendedSpeaker[1]} matches</span>
+        </div>
+
+        <div class="companion-item">
+          <h4>📅 Recommended Conference</h4>
+          <p class="companion-conference" data-year="${conferenceInfo.year}" data-month="${conferenceInfo.month}">${recommendedConference[0]}</p>
+          <span>${recommendedConference[1]} matches</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document
+    .querySelector(".companion-speaker")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        const speaker =
+          document.querySelector(
+            ".companion-speaker"
+          ).dataset.speaker;
+
+        const filteredTalks =
+          currentTalkList.filter(
+            talk =>
+              talk.speaker === speaker
+          );
+
+        activeConferenceFilter.innerHTML = `
+        <p class="active-filter">
+          Showing:
+          <strong>${speaker}</strong>
+
+          <button id="clearConferenceFilter">Clear Filter</button></p>
+      `;
+
+        renderConferenceResults(sortTalks(filteredTalks));
+        renderInsights(filteredTalks, speaker);
+        renderStudyCompanion(filteredTalks);
+      }
+    );
+
+  document
+    .querySelector(".companion-conference")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        const year =
+          Number(
+            document.querySelector(
+              ".companion-conference"
+            ).dataset.year
+          );
+
+        const month =
+          Number(
+            document.querySelector(
+              ".companion-conference"
+            ).dataset.month
+          );
+
+        const filteredTalks =
+          currentTalkList.filter(
+            talk =>
+              talk.year === year &&
+              talk.month === month
+          );
+
+        const conferenceDate =
+          month === 4
+            ? `April ${year}`
+            : `October ${year}`;
+
+        activeConferenceFilter.innerHTML = `
+            <p class="active-filter">
+              Showing:
+              <strong>${conferenceDate}</strong>
+    
+              <button id="clearConferenceFilter">
+                Clear Filter
+              </button>
+            </p>
+          `;
+
+        renderConferenceResults(sortTalks(filteredTalks));
+        renderInsights(filteredTalks, conferenceDate);
+        renderStudyCompanion(filteredTalks);
+      }
+    );
+
+  document
+    .querySelector(".companion-talk")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        const talkId =
+          document.querySelector(
+            ".companion-talk"
+          ).dataset.id;
+
+        console.log(
+          currentTalkList.find(
+            talk =>
+              talk.talkId === talkId
+          )
+        );
+
+        const selectedTalk =
+          currentTalkList.find(
+            talk =>
+              talk.talkId === talkId
+          );
+
+        renderConferenceResults(
+          [selectedTalk]
+        );
+
+        setTimeout(() => {
+          document
+            .querySelector(
+              `.full-talk-toggle[data-id="${talkId}"]`
+            )
+            ?.click();
+
+        }, 100);
+
+        console.log("Recommended Talk:", talkId);
+        console.log("Button Found:", talkButton);
+
+        if (talkButton) {
+          talkButton.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+          talkButton.click();
+        }
+      }
+    );
 }
 
 function renderInsights(talks, label) {
@@ -506,34 +679,19 @@ function renderInsights(talks, label) {
     
         ${mostRelevantTalk ? `
           <div class="recommendation-card">
-    
             <h4>Most Relevant Talk</h4>
-    
             <p>${mostRelevantTalk.title}</p>
-    
-            <span>
-              ${mostRelevantTalk.matches.length}
-              matches
-            </span>
-    
+            <span>${mostRelevantTalk.matches.length}matches</span>
           </div>
         ` : ""}
     
         ${mostRelevantConference ? `
           <div class="recommendation-card">
-    
             <h4>Most Relevant Conference</h4>
-    
             <p>${mostRelevantConference[0]}</p>
-    
-            <span>
-              ${mostRelevantConference[1]}
-              matches
-            </span>
-    
+            <span>${mostRelevantConference[1]} matches</span>
           </div>
         ` : ""}
-    
       </div>
     `;
 }
@@ -541,12 +699,9 @@ function renderInsights(talks, label) {
 export async function searchConference() {
 
   const searchTerm = searchInput.value.trim();
-
   localStorage.setItem("lastConferenceSearch", searchTerm);
 
-  if (!searchTerm) {
-    return;
-  }
+  if (!searchTerm) { return; }
 
   speakerAnalytics.innerHTML = "";
   conferenceResults.innerHTML = "";
@@ -572,12 +727,9 @@ export async function searchConference() {
     );
 
     const firstData = await firstResponse.json();
-
     const total = firstData.total;
-
     let allResults = [...firstData.results];
-
-    console.log("Total Matches:", total);
+    console.log("Total Matches:", total); // To be removed when completed
 
     // Get remaining pages (for operations, it should be offset < total, but for troubleshooting, set total = 500 or 100 for faster pulls)
     for (let offset = limit; offset < total; offset += limit) {
@@ -587,32 +739,15 @@ export async function searchConference() {
       );
 
       const data = await response.json();
-
       allResults.push(...data.results);
-
       console.table(allResults.slice(0, 10));
-
       const percent = Math.round((allResults.length / total) * 100);
+      let loadingMessage = "Searching Conference Talks...";
 
-      let loadingMessage =
-        "Searching Conference Talks...";
-
-      if (percent >= 95) {
-        loadingMessage =
-          "✓ Study Insights Ready";
-      }
-      else if (percent >= 75) {
-        loadingMessage =
-          "Generating Study Insights...";
-      }
-      else if (percent >= 50) {
-        loadingMessage =
-          "Building Conference Analytics...";
-      }
-      else if (percent >= 25) {
-        loadingMessage =
-          "Collecting Conference Results...";
-      }
+      if (percent >= 95) { loadingMessage = "✓ Study Insights Ready"; }
+      else if (percent >= 75) { loadingMessage = "Generating Study Insights..."; }
+      else if (percent >= 50) { loadingMessage = "Building Conference Analytics..."; }
+      else if (percent >= 25) { loadingMessage = "Collecting Conference Results..."; }
 
       loadingStatus.innerHTML = `
       <div class="loading-card">
@@ -623,14 +758,11 @@ export async function searchConference() {
       <div class="progress-fill" style="width:${percent}%"></div>
       </div>
       <p>${percent}% Complete</p>
-  </div>
-`;
+    </div>`;
     }
 
     console.log("Final Result Count:", allResults.length); // This line to be removed when functional
-
     const talks = {};
-
     allResults.forEach(result => {
 
       if (!talks[result.talkId]) {
@@ -644,32 +776,21 @@ export async function searchConference() {
           month: result.month,
           matches: []
         };
-
       }
 
-      talks[result.talkId].matches.push({
-        paragraph: result.paragraph, text: result.text
-      });
-
+      talks[result.talkId].matches.push({ paragraph: result.paragraph, text: result.text });
     });
 
     const talkList = Object.values(talks);
-
     currentTalkList = talkList;
-
     loadingStatus.innerHTML = "";
-
     renderConferenceResults(sortTalks(talkList));
-
+    renderStudyCompanion(talkList);
     const speakerCounts = {};
 
     talkList.forEach(talk => {
-
       const speaker = talk.speaker;
-
-      speakerCounts[speaker] =
-        (speakerCounts[speaker] || 0) + 1;
-
+      speakerCounts[speaker] = (speakerCounts[speaker] || 0) + 1;
     });
 
     const sortedSpeakers =
@@ -709,8 +830,8 @@ export async function searchConference() {
                 )
 
             renderConferenceResults(sortTalks(filteredTalks));
-
             renderInsights(filteredTalks, speaker);
+            renderStudyCompanion(filteredTalks);
 
             document
               .querySelector("#clearConferenceFilter")
@@ -719,9 +840,7 @@ export async function searchConference() {
                 () => {
 
                   activeConferenceFilter.innerHTML = "";
-
                   insightResults.innerHTML = "";
-
                   renderConferenceResults(sortTalks(currentTalkList));
                 }
               );
@@ -740,9 +859,7 @@ export async function searchConference() {
       const decade =
         Math.floor(talk.year / 10) * 10;
 
-      decadeCounts[decade] =
-        (decadeCounts[decade] || 0) + 1;
-
+      decadeCounts[decade] = (decadeCounts[decade] || 0) + 1;
     });
 
     const sortedDecades =
@@ -791,8 +908,8 @@ export async function searchConference() {
             );
 
           renderConferenceResults(sortTalks(filteredTalks));
-
           renderInsights(filteredTalks, `${decade}s`);
+          renderStudyCompanion(filteredTalks);
 
           document
             .querySelector("#clearConferenceFilter")
@@ -801,13 +918,8 @@ export async function searchConference() {
               () => {
 
                 activeConferenceFilter.innerHTML = "";
-
                 insightResults.innerHTML = "";
-
-                renderConferenceResults(
-                  sortTalks(currentTalkList)
-                );
-
+                renderConferenceResults(sortTalks(currentTalkList));
               }
             );
         }
@@ -815,11 +927,7 @@ export async function searchConference() {
     });
 
   } catch (error) {
-
     console.error(error);
-
-    conferenceResults.textContent =
-      `Error: ${error.message}`;
+    conferenceResults.textContent = `Error: ${error.message}`;
   }
-
 }

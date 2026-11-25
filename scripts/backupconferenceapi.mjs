@@ -79,7 +79,8 @@ document
 
 function renderResultsSummary(talks) {
 
-  const sortOption = document.querySelector("#sortOption").value;
+  const sortOption =
+    document.querySelector("#sortOption").value;
 
   const activeFilter =
     activeConferenceFilter.textContent
@@ -88,67 +89,73 @@ function renderResultsSummary(talks) {
       .trim()
     || "All Results";
 
-
-  const paragraphMatches =
-    talks.reduce(
-      (total, talk) =>
-        total + talk.matches.length,
-      0
-    );
-
   const sortLabel =
     sortOption === "relevance"
       ? "Most Relevant"
       : "Most Recent";
 
+  const speakerCount =
+    new Set(
+      talks.map(
+        talk => talk.speaker
+      )
+    ).size;
+
   resultsSummary.innerHTML = `
       <div class="summary-card">
   
-        <div class="summary-metric">
+        <div class="summary-metric summary-filter">
+  
           <span class="summary-number">
-            ${talks.length.toLocaleString()}
+            ${activeFilter}
           </span>
   
           <span class="summary-label">
-            Talks Found
+            Active Filter
           </span>
+  
         </div>
   
         <div class="summary-metric">
-          <span class="summary-number">
-            ${paragraphMatches.toLocaleString()}
-          </span>
   
-          <span class="summary-label">
-            Paragraph Matches
-          </span>
-        </div>
-  
-        <div class="summary-metric">
           <span class="summary-number">
-            ${Math.min(
-    talks.length,
-    25
-  )}
+            ${Math.min(talks.length, 25)}
           </span>
   
           <span class="summary-label">
             Showing
           </span>
+  
         </div>
+
+        <div class="summary-metric">
+
+        <span class="summary-number">
+          ${speakerCount}
+        </span>
+
+        <span class="summary-label">
+          Speakers
+        </span>
+
+      </div>
   
         <div class="summary-metric">
+  
           <span class="summary-number">
             ${sortLabel}
           </span>
   
+          
           <span class="summary-label">
-            Sort Method
+            Sorted By
           </span>
+  
         </div>
   
       </div>
     `;
+
 }
 
 function renderConferenceResults(talks) {
