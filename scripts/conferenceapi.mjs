@@ -146,6 +146,7 @@ function renderResultsSummary(talks) {
             ${sortLabel}
           </span>
   
+          
           <span class="summary-label">
             Sorted By
           </span>
