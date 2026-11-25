@@ -25,6 +25,29 @@ button {
     cursor: pointer;
 }
 
+.search-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#sortOption {
+    font-size: 0.95rem;
+}
+
+label[for="sortOption"] {
+    font-size: 0.95rem;
+    color: #666;
+    font-weight: 500;
+}
+
 pre {
     background-color: #f4f4f4;
     padding: 1rem;

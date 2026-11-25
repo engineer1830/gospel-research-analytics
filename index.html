@@ -23,19 +23,19 @@
             <p>Search General Conference talks and generate
                 speaker and decade analytics.  Some topics require additional loading time . . . please be patient.</p>
 
-            <div class="search-container">
-                <input id="searchInput" type="text" placeholder="Enter a topic...">
-                <button id="searchBtn">Search Conference</button>
-            </div>
+                <div class="search-container">
+                    <input id="searchInput" type="text" placeholder="Enter a topic...">
+                    <button id="searchBtn">Search Conference</button>
+                    <div class="sort-controls">
+                        <label for="sortOption">Sort By:</label>
+                        <select id="sortOption">
+                            <option value="recent">Most Recent</option>
+                            <option value="relevance">Most Relevant</option>
+                            <!-- <option value="matches">Most Matches</option> -->
+                        </select>
+                    </div>
+                </div>
 
-            <!-- <section id="decadeAnalytics">
-                <h3>Decade Analytics</h3>
-                <div id="yearResults"></div>
-            </section>
-            <section id="speakerAnalytics">
-                <h3>Speaker Analytics</h3>
-                <div id="speakerResults"></div>
-            </section> -->
             <h3>Conference Analytics</h3>
             
             <div class="conference-analytics-grid">
@@ -88,25 +88,6 @@
         <!-- ========================================= -->
         <!-- SCRIPTURE KEYWORD SEARCH -->
         <!-- ========================================= -->
-
-        <!-- <section id="scripture-search">
-            <h2>Scripture Keyword Search</h2>
-            <p>Search scripture text by keyword or phrase and
-                analyze the returned results.</p>
-            <div class="search-container">
-                <input id="searchScripture" type="text" placeholder="faith">
-                <button id="searchScriptureBtn">Search Scriptures</button>
-            </div>
-            <section>
-                <h3>Scripture Analytics</h3>
-                <div id="scriptureAnalytics"></div>
-            </section>
-
-            <section>
-                <h3>Scripture Results</h3>
-                <pre id="scriptureResults"></pre>
-            </section>
-        </section> -->
     
         <section id="scripture-search">
         
@@ -150,13 +131,8 @@
                 <div id="activeScriptureFilter"></div>
                 <div id="scriptureResults"></div>
             </section>
-
-            <!-- Adding this in as a reminder for later 
-            <div class="analytics-card">
-                <h4>Search Summary</h4>
-                <div id="searchSummary"></div>      </div>-->
         
-            </section>
+        </section>
     
     </main>
 

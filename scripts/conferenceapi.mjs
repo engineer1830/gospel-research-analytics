@@ -10,10 +10,75 @@ const activeConferenceFilter = document.querySelector("#activeConferenceFilter")
 const talkCache = {};
 
 let currentTalkList = [];
+let currentDisplayedTalks = [];
+
+function sortTalks(talks) {
+
+  const sortOption = document.querySelector("#sortOption").value;
+
+  const sorted = [...talks];
+
+  if (sortOption === "relevance") {
+
+    sorted.sort((a, b) => {
+
+      const matchDifference = b.matches.length - a.matches.length;
+
+      if (matchDifference !== 0) {
+        return matchDifference;
+      }
+      if (b.year !== a.year) {
+        return b.year - a.year;
+      }
+      return b.month - a.month;
+    });
+  }
+
+  else {
+    sorted.sort((a, b) => {
+      if (b.year !== a.year) {
+        return b.year - a.year;
+      }
+      return b.month - a.month;
+    });
+  }
+
+  console.log(
+    "Sort:",
+    sortOption,
+    "Top Result:",
+    sorted[0]?.title,
+    "Matches:",
+    sorted[0]?.matches?.length
+  );
+
+  return sorted;
+
+}
 
 searchInput.value = localStorage.getItem("lastConferenceSearch") || "";
 
+document
+  .querySelector("#sortOption")
+  .addEventListener(
+    "change",
+    () => {
+
+      console.log(
+        "Sort Changed:",
+        document.querySelector("#sortOption").value
+      );
+
+      renderConferenceResults(
+        sortTalks(currentDisplayedTalks)
+      );
+
+    }
+  );
+
 function renderConferenceResults(talks) {
+
+  currentDisplayedTalks = talks;
 
   conferenceResults.innerHTML = "";
 
@@ -193,16 +258,9 @@ function renderConferenceResults(talks) {
               .filter(
                 talk =>
                   talk.speaker === speaker
-              )
-              .sort(
-                (a, b) =>
-                  b.matches.length -
-                  a.matches.length
-              );
-
-          renderConferenceResults(
-            filteredTalks
-          );
+            )
+          
+          renderConferenceResults(sortTalks(filteredTalks));
 
           renderInsights(
             filteredTalks, speaker
@@ -218,8 +276,7 @@ function renderConferenceResults(talks) {
 
                 insightResults.innerHTML = "";
 
-                renderConferenceResults(currentTalkList
-                );
+                renderConferenceResults(sortTalks(currentTalkList));
 
               }
             );
@@ -266,9 +323,7 @@ function renderConferenceResults(talks) {
                 talk.month === month
             );
 
-          renderConferenceResults(
-            filteredTalks
-          );
+          renderConferenceResults(sortTalks(filteredTalks));
 
           renderInsights(
             filteredTalks, conferenceDate
@@ -284,14 +339,11 @@ function renderConferenceResults(talks) {
 
                 insightResults.innerHTML = "";
 
-                renderConferenceResults(currentTalkList);
-
+                renderConferenceResults(sortTalks(currentTalkList));
               }
             );
-
         }
       );
-
     });
 
 }
@@ -517,18 +569,9 @@ export async function searchConference() {
 
     currentTalkList = talkList;
 
-    talkList.sort((a, b) => {
-      if (b.year !== a.year) {
-        return b.year - a.year;
-      }
-
-      return b.month - a.month;
-
-    });
-
     loadingStatus.innerHTML = "";
 
-    renderConferenceResults(talkList);
+    renderConferenceResults(sortTalks(talkList));
 
     const speakerCounts = {};
 
@@ -576,13 +619,8 @@ export async function searchConference() {
                   talk =>
                     talk.speaker === speaker
                 )
-                .sort(
-                  (a, b) =>
-                    b.matches.length -
-                    a.matches.length
-                );
-
-            renderConferenceResults(filteredTalks);
+        
+            renderConferenceResults(sortTalks(filteredTalks));
 
             renderInsights(filteredTalks, speaker);
 
@@ -596,7 +634,7 @@ export async function searchConference() {
 
                   insightResults.innerHTML = "";
 
-                  renderConferenceResults(currentTalkList);
+                  renderConferenceResults(sortTalks(currentTalkList));
                 }
               );
           }
@@ -664,26 +702,9 @@ export async function searchConference() {
                   === decade
               );
 
-            renderConferenceResults(filteredTalks);
+            renderConferenceResults(sortTalks(filteredTalks));
 
-            renderInsights(filteredTalks,`${decade}s`);
-
-
-            document
-              .querySelector("#clearConferenceFilter")
-              ?.addEventListener(
-                "click",
-                () => {
-
-                  activeConferenceFilter.innerHTML = "";
-
-                  insightResults.innerHTML = "";
-
-                  renderConferenceResults(
-                    currentTalkList
-                  );
-                }
-              );
+            renderInsights(filteredTalks, `${decade}s`);
           }
         );
       });
@@ -695,4 +716,5 @@ export async function searchConference() {
     conferenceResults.textContent =
       `Error: ${error.message}`;
   }
+
 }
