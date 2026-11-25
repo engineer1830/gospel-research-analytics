@@ -385,7 +385,90 @@ function renderConferenceResults(talks) {
 
 }
 
+const stopWords = new Set([
+  "the",
+  "and",
+  "that",
+  "with",
+  "have",
+  "will",
+  "this",
+  "from",
+  "they",
+  "their",
+  "them",
+  "into",
+  "your",
+  "you",
+  "for",
+  "our",
+  "are",
+  "was",
+  "were",
+  "his",
+  "her",
+  "she",
+  "him",
+  "has",
+  "had",
+  "not",
+  "but",
+  "all",
+  "can",
+  "through",
+  "there",
+  "what",
+  "when",
+  "where",
+  "which",
+  "would",
+  "could",
+  "should",
+  "about",
+  "said",
+  "know",
+  "then",
+  "than",
+  "lord",
+  "jesus",
+  "christ",
+  "life",
+  "those",
+  "people",
+  "church",
+  "gospel",
+  "father",
+  "heavenly",
+  "savior",
+  "today",
+  "many",
+  "every",
+  "upon",
+  "unto",
+  "been",
+  "more",
+  "such",
+  "much",
+  "very",
+  "upon",
+  "unto",
+  "their",
+  "these",
+  "those",
+  "great",
+  "many",
+  "every",
+  "might",
+  "shall",
+  "also",
+  "often"
+]);
+
+
+
 function renderStudyCompanion(talks) {
+
+  const wordCounts = {};
 
   if (!talks.length) {
     studyCompanion.innerHTML = "";
@@ -444,10 +527,41 @@ function renderStudyCompanion(talks) {
           b[1] - a[1]
       )[0];
 
-  const conferenceInfo =
-    conferenceMetadata[
-    recommendedConference[0]
-    ];
+  talks.forEach(talk => {
+
+    talk.matches.forEach(match => {
+
+      const words =
+        match.text
+          .toLowerCase()
+          .replace(/[^a-z\s]/g, "")
+          .split(/\s+/);
+
+      words.forEach(word => {
+
+        if (
+          word.length < 4 ||
+          stopWords.has(word)
+        ) {
+          return;
+        }
+
+        wordCounts[word] =
+          (wordCounts[word] || 0) + 1;
+
+      });
+    });
+  });
+
+  const topThemes =
+    Object.entries(wordCounts)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )
+      .slice(0, 8);
+
+  const conferenceInfo = conferenceMetadata[recommendedConference[0]];
 
   studyCompanion.innerHTML = `
     <div class="study-companion-card">
@@ -475,8 +589,17 @@ function renderStudyCompanion(talks) {
           <p class="companion-conference" data-year="${conferenceInfo.year}" data-month="${conferenceInfo.month}">${recommendedConference[0]}</p>
           <span>${recommendedConference[1]} matches</span>
         </div>
+        <div class="companion-item">
+          <h4>📚 Top Themes</h4>
+          <div class="theme-list">
+          ${topThemes.map(
+    ([word]) =>
+      `<span class="theme-tag">${word}</span>`
+  ).join("")}
+        </div>
       </div>
     </div>
+  </div>
   `;
 
   document

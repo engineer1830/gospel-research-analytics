@@ -563,12 +563,31 @@ function renderStudyCompanion(talks) {
     .querySelector(".companion-talk")
     ?.addEventListener(
       "click",
-      () => {
+      async () => {
 
         const talkId =
           document.querySelector(
             ".companion-talk"
           ).dataset.id;
+
+        let fullTalk;
+
+        if (talkCache[talkId]) {
+
+          fullTalk = talkCache[talkId];
+
+        }
+        else {
+
+          const response =
+            await fetch(
+              `https://openscriptureapi.org/api/conference/v1/lds/en/talk/${talkId}`
+            );
+
+          fullTalk = await response.json();
+          talkCache[talkId] = fullTalk;
+
+        }
 
         console.log(
           currentTalkList.find(
@@ -577,36 +596,34 @@ function renderStudyCompanion(talks) {
           )
         );
 
-        const selectedTalk =
-          currentTalkList.find(
-            talk =>
-              talk.talkId === talkId
-          );
+        studyCompanionReading.innerHTML = `
+        <div class="companion-reading-card">
+          <div class="reading-header">
+          <h3>Study Companion Reading</h3>
 
-        renderConferenceResults(
-          [selectedTalk]
-        );
+          <button id="clearReading" class="clear-reading">Clear Reading</button>
+          </div>
+          <h4>${fullTalk.title}</h4>
+          <p><strong>${fullTalk.speaker}</strong></p>
 
-        setTimeout(() => {
-          document
-            .querySelector(
-              `.full-talk-toggle[data-id="${talkId}"]`
+          <p>${fullTalk.role || ""}</p>
+          ${fullTalk.content.paragraphs
+            .map(
+              paragraph =>
+                `<p>${paragraph.text}</p>`
             )
-            ?.click();
+            .join("")}
+        </div>
+`;
 
-        }, 100);
-
-        console.log("Recommended Talk:", talkId);
-        console.log("Button Found:", talkButton);
-
-        if (talkButton) {
-          talkButton.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
-
-          talkButton.click();
-        }
+        document
+          .querySelector("#clearReading")
+          ?.addEventListener(
+            "click",
+            () => {
+              studyCompanionReading.innerHTML = "";
+            }
+          );
       }
     );
 }

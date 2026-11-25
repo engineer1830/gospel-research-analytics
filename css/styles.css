@@ -486,3 +486,19 @@ pre {
 .clear-reading:hover {
     background: #e9ecef;
 }
+
+.theme-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .75rem;
+}
+
+.theme-tag {
+    background: #e8f0fe;
+    color: #1a4d8f;
+    padding: .3rem .6rem;
+    border-radius: 16px;
+    font-size: .85rem;
+    font-weight: 500;
+}
