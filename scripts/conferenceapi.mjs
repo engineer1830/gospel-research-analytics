@@ -6,6 +6,7 @@ const decadeAnalytics = document.querySelector("#yearResults");
 const insightResults = document.querySelector("#insightResults");
 const loadingStatus = document.querySelector("#loadingStatus");
 const activeConferenceFilter = document.querySelector("#activeConferenceFilter");
+const resultsSummary = document.querySelector("#resultsSummary");
 
 const talkCache = {};
 
@@ -76,9 +77,90 @@ document
     }
   );
 
+function renderResultsSummary(talks) {
+
+  const sortOption =
+    document.querySelector("#sortOption").value;
+
+  const activeFilter =
+    activeConferenceFilter.textContent
+      .replace("Showing:", "")
+      .replace("Clear Filter", "")
+      .trim()
+    || "All Results";
+
+  const sortLabel =
+    sortOption === "relevance"
+      ? "Most Relevant"
+      : "Most Recent";
+
+  const speakerCount =
+    new Set(
+      talks.map(
+        talk => talk.speaker
+      )
+    ).size;
+
+  resultsSummary.innerHTML = `
+      <div class="summary-card">
+  
+        <div class="summary-metric summary-filter">
+  
+          <span class="summary-number">
+            ${activeFilter}
+          </span>
+  
+          <span class="summary-label">
+            Active Filter
+          </span>
+  
+        </div>
+  
+        <div class="summary-metric">
+  
+          <span class="summary-number">
+            ${Math.min(talks.length, 25)}
+          </span>
+  
+          <span class="summary-label">
+            Showing
+          </span>
+  
+        </div>
+
+        <div class="summary-metric">
+
+        <span class="summary-number">
+          ${speakerCount}
+        </span>
+
+        <span class="summary-label">
+          Speakers
+        </span>
+
+      </div>
+  
+        <div class="summary-metric">
+  
+          <span class="summary-number">
+            ${sortLabel}
+          </span>
+  
+          <span class="summary-label">
+            Sorted By
+          </span>
+  
+        </div>
+  
+      </div>
+    `;
+
+}
+
 function renderConferenceResults(talks) {
 
   currentDisplayedTalks = talks;
+  renderResultsSummary(talks);
 
   conferenceResults.innerHTML = "";
 
@@ -146,6 +228,8 @@ function renderConferenceResults(talks) {
         matchList.hidden =
           !matchList.hidden;
 
+        button.classList.toggle("toggle-open", !matchList.hidden);
+
         button.textContent =
           matchList.hidden
             ? `▼ Show ${button.dataset.count} Match(es)`
@@ -173,6 +257,11 @@ function renderConferenceResults(talks) {
           if (fullTalkContainer.innerHTML.trim()) {
 
             fullTalkContainer.hidden = !fullTalkContainer.hidden;
+
+            button.classList.toggle(
+              "toggle-open",
+              !fullTalkContainer.hidden
+            );
 
             button.textContent =
               fullTalkContainer.hidden
@@ -221,6 +310,8 @@ function renderConferenceResults(talks) {
 
           fullTalkContainer.hidden = false;
 
+          button.classList.add("toggle-open");
+
           button.textContent =
             fullTalkContainer.hidden
               ? "▼ View Full Talk"
@@ -258,13 +349,11 @@ function renderConferenceResults(talks) {
               .filter(
                 talk =>
                   talk.speaker === speaker
-            )
-          
+              )
+
           renderConferenceResults(sortTalks(filteredTalks));
 
-          renderInsights(
-            filteredTalks, speaker
-          );
+          renderInsights(filteredTalks, speaker);
 
           document
             .querySelector("#clearConferenceFilter")
@@ -325,9 +414,7 @@ function renderConferenceResults(talks) {
 
           renderConferenceResults(sortTalks(filteredTalks));
 
-          renderInsights(
-            filteredTalks, conferenceDate
-          );
+          renderInsights(filteredTalks, conferenceDate);
 
           document
             .querySelector("#clearConferenceFilter")
@@ -619,7 +706,7 @@ export async function searchConference() {
                   talk =>
                     talk.speaker === speaker
                 )
-        
+
             renderConferenceResults(sortTalks(filteredTalks));
 
             renderInsights(filteredTalks, speaker);
@@ -640,7 +727,7 @@ export async function searchConference() {
           }
         );
       });
-    
+
     // ==========================================
     // Decade Analytics
     // ==========================================
@@ -678,13 +765,13 @@ export async function searchConference() {
 
     document.querySelectorAll(".decade-filter").forEach(item => {
 
-        item.addEventListener(
-          "click",
-          () => {
+      item.addEventListener(
+        "click",
+        () => {
 
-            const decade = Number(item.dataset.decade);
+          const decade = Number(item.dataset.decade);
 
-            activeConferenceFilter.innerHTML = `
+          activeConferenceFilter.innerHTML = `
               <p class="active-filter">
                 Showing:
                 <strong>${decade}s</strong>
@@ -695,19 +782,36 @@ export async function searchConference() {
               </p>
             `;
 
-            const filteredTalks =
-              currentTalkList.filter(
-                talk =>
-                  Math.floor(talk.year / 10) * 10
-                  === decade
-              );
+          const filteredTalks =
+            currentTalkList.filter(
+              talk =>
+                Math.floor(talk.year / 10) * 10
+                === decade
+            );
 
-            renderConferenceResults(sortTalks(filteredTalks));
+          renderConferenceResults(sortTalks(filteredTalks));
 
-            renderInsights(filteredTalks, `${decade}s`);
-          }
-        );
-      });
+          renderInsights(filteredTalks, `${decade}s`);
+
+          document
+            .querySelector("#clearConferenceFilter")
+            ?.addEventListener(
+              "click",
+              () => {
+
+                activeConferenceFilter.innerHTML = "";
+
+                insightResults.innerHTML = "";
+
+                renderConferenceResults(
+                  sortTalks(currentTalkList)
+                );
+
+              }
+            );
+        }
+      );
+    });
 
   } catch (error) {
 
