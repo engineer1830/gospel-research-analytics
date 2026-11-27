@@ -502,3 +502,40 @@ pre {
     font-size: .85rem;
     font-weight: 500;
 }
+
+.conference-companion-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, .08);
+}
+
+.conference-overview {
+    margin-bottom: 1rem;
+}
+
+.conference-overview h4 {
+    color: #1a4d8f;
+    margin-bottom: .5rem;
+}
+
+.conference-insight {
+    background: #f8fafc;
+    border-left: 4px solid #1a4d8f;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.conference-insight h4 {
+    margin-bottom: .5rem;
+    color: #1a4d8f;
+}
+
+.conference-insight p {
+    font-size: 1.1rem;
+    line-height: 1.6; 
+}
