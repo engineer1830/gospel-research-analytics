@@ -503,7 +503,8 @@ const stopWords = new Set([
   "called",
   "receive",
   "become",
-  "given"
+  "given",
+  "without"
 ]);
 
 const normalizationMap = {
