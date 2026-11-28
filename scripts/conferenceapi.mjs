@@ -876,7 +876,7 @@ const normalizationMap = {
   sisters: "sister",
   leaders: "leader",
   scriptures: "scripture",
-  commandments: "commandment",
+  commandment: "commandments",
   ordinances: "ordinance",
   houses: "house",
   holders: "holder",
