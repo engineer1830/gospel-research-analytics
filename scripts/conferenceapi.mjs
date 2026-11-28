@@ -1,5 +1,10 @@
 const searchInput = document.querySelector("#searchInput");
 
+const conferenceYear = document.querySelector("#conferenceYear");
+const conferenceMonth = document.querySelector("#conferenceMonth");
+const analyzeConferenceButton = document.querySelector("#analyzeConference");
+const conferenceExplorerResults = document.querySelector("#conferenceExplorerResults");
+
 const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
 const decadeAnalytics = document.querySelector("#yearResults");
@@ -18,6 +23,233 @@ const talkCache = {};
 
 let currentTalkList = [];
 let currentDisplayedTalks = [];
+
+for (
+  let year = new Date().getFullYear();
+  year >= 1971;
+  year--
+) {
+
+  conferenceYear.innerHTML += `
+    <option value="${year}">
+      ${year}
+    </option>
+  `;
+
+}
+
+analyzeConferenceButton
+  ?.addEventListener(
+    "click",
+    analyzeConference
+  );
+
+async function analyzeConference() {
+
+  const conferenceId = `${conferenceYear.value}-${conferenceMonth.value}`;
+
+  const response =
+    await fetch(
+      `https://openscriptureapi.org/api/conference/v1/lds/en/conference/${conferenceId}?include_talks=true`
+    );
+
+  const conference = await response.json();
+
+  console.log(conference);
+
+  console.table(conference.sessions);
+
+  console.log(conference.sessions[0].talks[0]);
+
+  const conferenceTalks = conference.sessions.flatMap(session => session.talks);
+  const fullTalks = [];
+
+  for (const talk of conferenceTalks) {
+
+    const response =
+      await fetch(
+        `https://openscriptureapi.org/api/conference/v1/lds/en/talk/${talk._id}`
+      );
+
+    const fullTalk = await response.json();
+
+    fullTalks.push(fullTalk);
+  }
+
+  const excludedPresidentTitles = [
+    "Introduction",
+    "Sustaining of General Authorities, Area Seventies, and General Officers"
+  ];
+
+  let presidentTalks =
+    fullTalks.filter(
+      talk =>
+        talk.role ===
+        "President of The Church of Jesus Christ of Latter-day Saints"
+    );
+
+  // October 2025 occurred during the
+  // transition between Church presidents.
+  // Fall back to Dallin H. Oaks when no
+  // President of the Church is present.
+
+  if (
+    presidentTalks.length === 0 &&
+    conference._id === "2025-10"
+  ) {
+
+    presidentTalks =
+      fullTalks.filter(
+        talk =>
+          talk.speaker === "Dallin H. Oaks"
+      );
+  }
+
+  presidentTalks =
+    presidentTalks.filter(
+      talk =>
+        !excludedPresidentTitles.includes(
+          talk.title
+        )
+    );
+
+  console.table(
+    presidentTalks.map(
+      talk => ({
+        title: talk.title,
+        speaker: talk.speaker
+      })
+    )
+  );
+
+  console.table(
+    fullTalks
+      .filter(
+        talk => talk.speaker === "Dallin H. Oaks"
+      )
+      .map(
+        talk => ({
+          title: talk.title,
+          role: talk.role
+        })
+      )
+  );
+
+  const wordCounts = {};
+
+  fullTalks.forEach(talk => {
+
+    talk.content.paragraphs.forEach(
+      paragraph => {
+
+        const words =
+          paragraph.text
+            .toLowerCase()
+            .replace(
+              /[^a-z\s]/g,
+              ""
+            )
+            .split(/\s+/);
+
+        words.forEach(word => {
+
+          if (
+            word.length < 4 ||
+            stopWords.has(word)
+          ) {
+            return;
+          }
+
+          const normalizedWord =
+            normalizationMap[word] || word;
+
+          wordCounts[normalizedWord] =
+            (wordCounts[normalizedWord] || 0) + 1;
+        });
+      }
+    );
+  });
+
+  const topThemes =
+    Object.entries(wordCounts)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )
+      .slice(0, 10);
+
+  const insightThemes =
+    topThemes
+      .slice(0, 4)
+      .map(
+        ([word]) =>
+          formatTheme(word)
+      );
+
+  const conferenceInsight =
+    insightThemes.length > 1
+      ? `${insightThemes.slice(0, -1).join(", ")} and ${insightThemes.at(-1)}`
+      : insightThemes[0];
+
+
+  console.log("Full Talks:", fullTalks.length);
+
+  console.log(fullTalks[0]);
+
+  console.table(topThemes);
+
+  const speakerCount = new Set(conferenceTalks.map(talk => talk.speaker)).size;
+
+  conferenceExplorerResults.innerHTML = `
+  <div class="conference-companion-card">
+    <h3>${conference.title}</h3>
+    <div class="insight-metrics">
+    <div class="metric-card">
+        <div class="metric-number">${conferenceTalks.length}</div>
+        <div class="metric-label">Talks</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-number">${conference.sessions.length}</div>
+        <div class="metric-label">Sessions</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-number">${speakerCount}</div>
+        <div class="metric-label">Speakers</div>
+    </div>
+</div>
+
+      <div class="conference-insight">
+        <h4>Conference Insights</h4>
+        The strongest recurring themes in the
+        ${conference.title} were
+        ${conferenceInsight}.
+        <div class="theme-list">
+        ${topThemes.map(
+    ([word, count]) => `
+          <span class="theme-tag">
+          ${formatTheme(word)}
+        (${count})</span>
+        `).join("")}
+        </div>
+      </div>
+
+</div>
+
+      <h4>Sessions</h4>
+      <ul>
+        ${conference.sessions
+      .map(
+        session =>
+          `<li>
+                ${session.name}
+                (${session.talks.length} talks)
+              </li>`
+      )
+      .join("")}
+      </ul>
+  </div>`;
+
+}
 
 function sortTalks(talks) {
 
@@ -504,7 +736,9 @@ const stopWords = new Set([
   "receive",
   "become",
   "given",
-  "without"
+  "without",
+  "president",
+  "name"
 ]);
 
 const normalizationMap = {
@@ -522,7 +756,7 @@ const normalizationMap = {
   children: "child",
   parents: "parent",
   temples: "temple",
-  covenants: "covenant",
+  covenant: "covenants",
   blessings: "blessing",
   members: "member",
   loves: "love",

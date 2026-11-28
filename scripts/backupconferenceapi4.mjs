@@ -12,6 +12,7 @@ const resultsSummary = document.querySelector("#resultsSummary");
 
 const studyCompanion = document.querySelector("#studyCompanion");
 const studyCompanionReading = document.querySelector("#studyCompanionReading");
+const conferenceCompanion = document.querySelector("#conferenceCompanion");
 
 const talkCache = {};
 
@@ -367,6 +368,7 @@ function renderConferenceResults(talks) {
           renderConferenceResults(sortTalks(filteredTalks));
           renderInsights(filteredTalks, conferenceDate);
           renderStudyCompanion(filteredTalks);
+          renderConferenceCompanion(filteredTalks, conferenceDate, searchInput.value.trim());
 
           document
             .querySelector("#clearConferenceFilter")
@@ -385,7 +387,190 @@ function renderConferenceResults(talks) {
 
 }
 
+// ============================
+// Theme Processing
+// ============================
+
+const stopWords = new Set([
+  "the",
+  "and",
+  "that",
+  "with",
+  "have",
+  "will",
+  "this",
+  "from",
+  "they",
+  "their",
+  "them",
+  "into",
+  "your",
+  "you",
+  "for",
+  "our",
+  "are",
+  "was",
+  "were",
+  "his",
+  "her",
+  "she",
+  "him",
+  "has",
+  "had",
+  "not",
+  "but",
+  "all",
+  "can",
+  "through",
+  "there",
+  "what",
+  "when",
+  "where",
+  "which",
+  "would",
+  "could",
+  "should",
+  "about",
+  "said",
+  "know",
+  "then",
+  "than",
+  "life",
+  "those",
+  "people",
+  "church",
+  "gospel",
+  "father",
+  "heavenly",
+  "savior",
+  "today",
+  "many",
+  "every",
+  "upon",
+  "unto",
+  "been",
+  "more",
+  "such",
+  "much",
+  "very",
+  "upon",
+  "unto",
+  "their",
+  "these",
+  "those",
+  "great",
+  "many",
+  "every",
+  "might",
+  "shall",
+  "also",
+  "often",
+  "because",
+  "each",
+  "down",
+  "things",
+  "even",
+  "never",
+  "young",
+  "just",
+  "come",
+  "some",
+  "lives",
+  "only",
+  "other",
+  "others",
+  "like",
+  "first",
+  "years",
+  "time",
+  "make",
+  "made",
+  "before",
+  "after",
+  "must",
+  "most",
+  "always",
+  "words",
+  "live",
+  "being",
+  "give",
+  "find",
+  "feel",
+  "another",
+  "together",
+  "important",
+  "remember",
+  "called",
+  "receive",
+  "become",
+  "given",
+  "without"
+]);
+
+const normalizationMap = {
+  lord: "jesus christ",
+  jesus: "jesus christ",
+  christ: "jesus christ",
+  faithful: "faith",
+  faithfully: "faith",
+  hopes: "hope",
+  pray: "prayer",
+  prayers: "prayer",
+  praying: "prayer",
+  hearts: "heart",
+  families: "family",
+  children: "child",
+  parents: "parent",
+  temples: "temple",
+  covenants: "covenant",
+  blessings: "blessing",
+  members: "member",
+  loves: "love",
+  truths: "truth",
+  saints: "saint",
+  brothers: "brother",
+  sisters: "sister",
+  leaders: "leader",
+  scriptures: "scripture",
+  commandments: "commandment",
+  ordinances: "ordinance",
+  houses: "house",
+  holders: "holder",
+  blessings: "blessing"
+};
+
+const displayMap = {
+  "jesus christ": "Jesus Christ",
+  "joseph smith": "Joseph Smith",
+  "holy ghost": "Holy Ghost",
+  "book of mormon": "Book of Mormon",
+  "doctrine and covenants": "Doctrine and Covenants",
+  "pearl of great price": "Pearl of Great Price",
+  adam: "Adam",
+  eve: "Eve",
+  abraham: "Abraham",
+  moses: "Moses",
+  noah: "Noah",
+  isaiah: "Isaiah",
+  nephi: "Nephi",
+  moroni: "Moroni",
+  alma: "Alma",
+  helaman: "Helaman"
+};
+
+function formatTheme(theme) {
+  return (
+    displayMap[theme] ||
+    theme.replace(
+      /\b\w/g,
+      letter => letter.toUpperCase()
+    )
+  );
+}
+
 function renderStudyCompanion(talks) {
+
+  const wordCounts = {};
 
   if (!talks.length) {
     studyCompanion.innerHTML = "";
@@ -444,10 +629,48 @@ function renderStudyCompanion(talks) {
           b[1] - a[1]
       )[0];
 
-  const conferenceInfo =
-    conferenceMetadata[
-    recommendedConference[0]
-    ];
+  talks.forEach(talk => {
+
+    talk.matches.forEach(match => {
+
+      const words =
+        match.text
+          .toLowerCase()
+          .replace(/[^a-z\s]/g, "")
+          .split(/\s+/);
+
+      words.forEach(word => {
+
+        if (
+          word.length < 4 ||
+          stopWords.has(word)
+        ) {
+          return;
+        }
+
+        const normalizedWord = normalizationMap[word] || word;
+
+        wordCounts[normalizedWord] = (wordCounts[normalizedWord] || 0) + 1;
+
+      });
+    });
+  });
+
+  const topThemes =
+    Object.entries(wordCounts)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )
+      .slice(0, 8);
+
+  console.table(
+    Object.entries(wordCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 50)
+  );
+
+  const conferenceInfo = conferenceMetadata[recommendedConference[0]];
 
   studyCompanion.innerHTML = `
     <div class="study-companion-card">
@@ -475,8 +698,17 @@ function renderStudyCompanion(talks) {
           <p class="companion-conference" data-year="${conferenceInfo.year}" data-month="${conferenceInfo.month}">${recommendedConference[0]}</p>
           <span>${recommendedConference[1]} matches</span>
         </div>
+        <div class="companion-item">
+          <h4>📚 Top Themes</h4>
+          <div class="theme-list">
+          ${topThemes.map(
+    ([word]) =>
+      `<span class="theme-tag">${formatTheme(word)}</span>`
+  ).join("")}
+        </div>
       </div>
     </div>
+  </div>
   `;
 
   document
@@ -556,6 +788,7 @@ function renderStudyCompanion(talks) {
         renderConferenceResults(sortTalks(filteredTalks));
         renderInsights(filteredTalks, conferenceDate);
         renderStudyCompanion(filteredTalks);
+        renderConferenceCompanion(filteredTalks, conferenceDate, searchInput.value.trim());
       }
     );
 
@@ -627,6 +860,152 @@ function renderStudyCompanion(talks) {
       }
     );
 }
+
+function renderConferenceCompanion(talks, conferenceName, searchTopic
+) {
+
+
+  if (!talks.length) {
+
+    conferenceCompanion.innerHTML = "";
+
+    return;
+
+  }
+
+  const speakerCount =
+    new Set(
+      talks.map(
+        talk => talk.speaker
+      )
+    ).size;
+
+  const matchCount =
+    talks.reduce(
+      (total, talk) =>
+        total + talk.matches.length,
+      0
+    );
+
+  const wordCounts = {};
+
+  talks.forEach(talk => {
+
+    talk.matches.forEach(match => {
+
+      const words =
+        match.text
+          .toLowerCase()
+          .replace(
+            /[^a-z\s]/g,
+            ""
+          )
+          .split(/\s+/);
+
+      words.forEach(word => {
+
+        if (
+          word.length < 4 ||
+          stopWords.has(word)
+        ) {
+          return;
+        }
+
+        const normalizedWord = normalizationMap[word] || word;
+
+        wordCounts[normalizedWord] = (wordCounts[normalizedWord] || 0) + 1;
+
+      });
+
+    });
+
+  });
+
+  const topThemes =
+    Object.entries(wordCounts)
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )
+      .slice(0, 10);
+
+  const insightThemes =
+    topThemes
+      .slice(0, 4)
+      .map(
+        ([word]) => word
+      );
+
+  // const conferenceInsight =
+  //   insightThemes.length > 1
+  //     ? `${insightThemes.slice(0, -1).join(", ")} and ${insightThemes.at(-1)}`
+  //     : insightThemes[0];
+
+  const displayThemes = insightThemes.map(theme => formatTheme(theme));
+
+  const conferenceInsight =
+    displayThemes.length > 1
+      ? `${displayThemes.slice(0, -1).join(", ")} and ${displayThemes.at(-1)}`
+      : displayThemes[0];
+
+  conferenceCompanion.innerHTML = `
+    <div class="conference-companion-card">
+
+      <h3>Conference Companion</h3>
+      <div class="conference-overview">
+        <h4>${conferenceName}</h4>
+        <p class="conference-topic">
+        Search Topic: <strong>${searchTopic}</strong></p>
+
+        <p>
+          ${talks.length} talks ·
+          ${speakerCount} speakers ·
+          ${matchCount} topic matches found
+        </p>
+      </div>
+      <div class="conference-themes">
+      <div class="conference-insight">
+
+        <h4>Conference Insight</h4>
+        <p>
+            The strongest recurring themes in the
+            <strong>${conferenceName}</strong>
+            conference were 
+            ${conferenceInsight}.
+
+          </p>
+      </div>
+
+        <h4>Top Themes</h4>
+
+        <div class="theme-list">
+
+        ${topThemes.map(
+    ([word, count]) => `
+              <span class="theme-tag">
+                ${formatTheme(word)}
+                (${count})
+              </span>`
+  )
+      .join("")}
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+// this block is just in reserve
+// everything below here to be cut
+//   < strong > ${ matchCount } matching paragraphs</strong >
+//             for the topic
+//   < strong > "${searchTopic}"</strong >,
+//     <strong>${conferenceName}</strong>
+//             heavily emphasized
+//   < strong > ${ conferenceInsight }</strong >.
 
 function renderInsights(talks, label) {
 
