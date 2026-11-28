@@ -4,6 +4,7 @@ const conferenceYear = document.querySelector("#conferenceYear");
 const conferenceMonth = document.querySelector("#conferenceMonth");
 const analyzeConferenceButton = document.querySelector("#analyzeConference");
 const conferenceExplorerResults = document.querySelector("#conferenceExplorerResults");
+const conferenceExplorerReading = document.querySelector("#conferenceExplorerReading");
 
 const conferenceResults = document.querySelector("#conferenceResults");
 const speakerAnalytics = document.querySelector("#speakerResults");
@@ -45,6 +46,11 @@ analyzeConferenceButton
   );
 
 async function analyzeConference() {
+
+  console.log(
+    "Start scroll:",
+    window.scrollY
+  );
 
   const conferenceId = `${conferenceYear.value}-${conferenceMonth.value}`;
 
@@ -177,6 +183,48 @@ async function analyzeConference() {
           b[1] - a[1]
       )
       .slice(0, 10);
+  
+  const primaryThemes =
+    topThemes
+      .slice(0, 5)
+      .map(
+        ([word]) => word
+    );
+  
+  const recommendedTalks =
+    fullTalks
+      .map(talk => {
+
+        const text =
+          talk.content.paragraphs
+            .map(
+              paragraph =>
+                paragraph.text.toLowerCase()
+            )
+            .join(" ");
+
+        let score = 0;
+
+        primaryThemes.forEach(
+          theme => {
+
+            score +=
+              text.split(theme).length - 1;
+          }
+        );
+
+        return {talkId: talk._id, title: talk.title, speaker: talk.speaker, score};
+      })
+
+      .sort(
+        (a, b) =>
+          b.score - a.score
+      )
+      .slice(0, 3);
+  
+  console.table(
+    recommendedTalks
+  );
 
   const insightThemes =
     topThemes
@@ -220,20 +268,29 @@ async function analyzeConference() {
 
       <div class="conference-insight">
         <h4>Conference Insights</h4>
-        The strongest recurring themes in the
-        ${conference.title} were
-        ${conferenceInsight}.
-        <div class="theme-list">
-        ${topThemes.map(
-    ([word, count]) => `
-          <span class="theme-tag">
-          ${formatTheme(word)}
-        (${count})</span>
-        `).join("")}
-        </div>
-      </div>
+        <p>The strongest recurring themes in the ${conference.title} were ${conferenceInsight}.</p>
 
-</div>
+          <div class="theme-list">
+            ${topThemes.map(([word, count]) => `
+            <span class="theme-tag">
+            ${formatTheme(word)}
+          (${count})</span>`).join("")}
+          </div>
+
+          <div class="recommendation-card">
+          <h4>Messages from the President</h4>
+
+          ${presidentTalks.map(talk => `<p class="recommended-talk" data-id="${talk._id}">${talk.title}</p>
+          <span>${talk.speaker}</span>`).join("")}
+          </div>
+
+          <div class="recommendation-card">
+          <h4>Recommended Talks</h4>
+          ${recommendedTalks.map(talk => `
+            <p class="recommended-talk" data-id="${talk.talkId}">${talk.title}</p>
+          <span>${talk.speaker} · Conference Relevance Score: ${talk.score}</span>`).join("")}
+          </div>
+      </div>
 
       <h4>Sessions</h4>
       <ul>
@@ -249,6 +306,59 @@ async function analyzeConference() {
       </ul>
   </div>`;
 
+  console.log(
+    "After render scroll:",
+    window.scrollY
+  );
+
+
+  document
+    .querySelectorAll(".recommended-talk")
+    .forEach(item => {
+
+      item.addEventListener(
+        "click",
+        async () => {
+
+          const talkId = item.dataset.id;
+
+          let fullTalk;
+
+          if (talkCache[talkId]) {
+
+            fullTalk = talkCache[talkId];
+          }
+          else {
+            const response = await fetch(
+                `https://openscriptureapi.org/api/conference/v1/lds/en/talk/${talkId}`
+              );
+
+            fullTalk = await response.json();
+
+            console.log(fullTalk);
+
+            talkCache[talkId] = fullTalk;
+          }
+
+          conferenceExplorerReading.innerHTML = `
+          <div class="companion-reading-card">
+
+            <h3>Recommended Reading</h3>
+            <h4>${fullTalk.content.title}</h4>
+            <p><strong>${fullTalk.content.speaker}</strong></p>
+
+            ${fullTalk.content.paragraphs
+              .map(
+                paragraph =>
+                  `<p>${paragraph.text}</p>`
+              )
+              .join("")}
+          </div>
+        `;
+        }
+      );
+    });
+  
 }
 
 function sortTalks(talks) {

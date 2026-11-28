@@ -580,3 +580,17 @@ pre {
 .conference-insight .theme-list {
     margin-top: 1.1rem;
 }
+
+.recommendation-card {
+    margin-top: 1rem;
+}
+
+.recommended-talk {
+    cursor: pointer;
+    color: #1a4d8f;
+    font-weight: 600;
+}
+
+.recommended-talk:hover {
+    text-decoration: underline;
+}
